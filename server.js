@@ -35,6 +35,7 @@ const storm_1 = __importDefault(require("./routes/storm"));
 const social_1 = __importDefault(require("./routes/social"));
 const outreach_1 = __importDefault(require("./routes/outreach"));
 const video_studio_1 = __importDefault(require("./routes/video-studio"));
+const video_pipeline_1 = __importDefault(require("./routes/video-pipeline"));
 const app = (0, express_1.default)();
 exports.app = app;
 const PORT = process.env.PORT || 5000;
@@ -102,6 +103,7 @@ app.use('/api/storm', storm_1.default);
 app.use('/api/social', social_1.default);
 app.use('/api/outreach', outreach_1.default);
 app.use('/api/video-studio', video_studio_1.default);
+app.use('/api/video-pipeline', video_pipeline_1.default);
 app.use((_req, res) => {
     res.status(404).json({
         success: false,
@@ -134,10 +136,13 @@ const startServer = async () => {
 ║                                                              ║
 ║   Port:        ${PORT.toString().padEnd(51, ' ')}║
 ║   Environment: ${(process.env.NODE_ENV || 'development').padEnd(51, ' ')}║
-║   Scheduler:   Active with 15 agents                         ║
+║   Scheduler:   Active with 25 agents                         ║
 ║   WebSocket:   /ws/leads                                     ║
 ║   Moats:       Territories, HOA, Social Proof,               ║
 ║                Group Buying, Predictive AI, Storm            ║
+║   Video:       7-Agent Production Pipeline                   ║
+║                (Director, Writer, Visual, Producer,          ║
+║                 Editor, Social, Analytics)                   ║
 ║                                                              ║
 ╚══════════════════════════════════════════════════════════════╝
       `);
