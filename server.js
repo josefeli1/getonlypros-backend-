@@ -26,6 +26,12 @@ const earnings_1 = __importDefault(require("./routes/earnings"));
 const reviews_1 = __importDefault(require("./routes/reviews"));
 const analytics_1 = __importDefault(require("./routes/analytics"));
 const seed_1 = __importDefault(require("./routes/seed"));
+const territories_1 = __importDefault(require("./routes/territories"));
+const hoa_1 = __importDefault(require("./routes/hoa"));
+const social_proof_1 = __importDefault(require("./routes/social-proof"));
+const groups_1 = __importDefault(require("./routes/groups"));
+const predict_1 = __importDefault(require("./routes/predict"));
+const storm_1 = __importDefault(require("./routes/storm"));
 const app = (0, express_1.default)();
 exports.app = app;
 const PORT = process.env.PORT || 5000;
@@ -84,6 +90,12 @@ app.use('/api/earnings', earnings_1.default);
 app.use('/api/reviews', reviews_1.default);
 app.use('/api/analytics', analytics_1.default);
 app.use('/api/seed', seed_1.default);
+app.use('/api/territories', territories_1.default);
+app.use('/api/hoa', hoa_1.default);
+app.use('/api/social-proof', social_proof_1.default);
+app.use('/api/groups', groups_1.default);
+app.use('/api/predict', predict_1.default);
+app.use('/api/storm', storm_1.default);
 app.use((_req, res) => {
     res.status(404).json({
         success: false,
@@ -112,12 +124,14 @@ const startServer = async () => {
             console.log(`
 ╔══════════════════════════════════════════════════════════════╗
 ║                                                              ║
-║   🚀  GetOnlyPros Backend v2                                 ║
+║   🚀  GetOnlyPros Backend v2 - LAS VEGAS EDITION             ║
 ║                                                              ║
 ║   Port:        ${PORT.toString().padEnd(51, ' ')}║
 ║   Environment: ${(process.env.NODE_ENV || 'development').padEnd(51, ' ')}║
 ║   Scheduler:   Active with 15 agents                         ║
 ║   WebSocket:   /ws/leads                                     ║
+║   Moats:       Territories, HOA, Social Proof,               ║
+║                Group Buying, Predictive AI, Storm            ║
 ║                                                              ║
 ╚══════════════════════════════════════════════════════════════╝
       `);
