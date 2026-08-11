@@ -10,7 +10,7 @@ const Lead = require('../models/Lead').Lead;
 class SocialMediaMonitorAgent extends BaseAgent {
   constructor() {
     super('SocialMediaMonitor', 'social_media_monitor');
-    this.platforms = ['nextdoor', 'facebook', 'reddit', 'twitter'];
+    this.platforms = ['nextdoor', 'facebook', 'reddit', 'twitter', 'tiktok', 'instagram'];
     this.keywords = [
       // Life events
       'just bought a house', 'new homeowner', 'first home', 'closed on',
@@ -33,12 +33,23 @@ class SocialMediaMonitorAgent extends BaseAgent {
       'contractor ghosted', 'terrible contractor', 'scammed by',
       'overcharged', 'bad experience with', 'never hire',
       'left a mess', 'didn\'t finish', 'took my deposit',
+      // TikTok / Instagram specific
+      'day in my life new house', 'house tour', 'fixer upper', 'before and after',
+      'renovation reveal', 'new build vegas', 'dream home', 'house flip',
+      'diy fail', 'hired a pro', 'unboxing my new', 'home makeover',
+      'las vegas real estate', 'moving to vegas', 'vegas home tour',
+      'ac broke again', 'pool life vegas', 'desert living', 'vegas heat problems',
+      '#vegaslocal', '#vegaslife', '#lasvegashomes', '#summerlinliving',
+      '#hendersonnv', '#vegashomeimprovement', '#vegaspool', '#vegassolar',
     ];
     this.lasVegasGroups = [
       'Summerlin Residents', 'Henderson NV Community', 'Las Vegas Homeowners',
       'Vegas Real Estate', 'Anthem NV', 'Green Valley Residents',
       'North Las Vegas', 'Downtown Las Vegas', 'Boulder City',
       'r/vegaslocals', 'r/henderson', 'r/summerlin',
+      '#vegaslocal', '#vegaslife', '#lasvegashomes', '#summerlinliving',
+      '#hendersonnv', '#vegashomeimprovement', '#vegaspool', '#vegassolar',
+      '#vegashvac', '#vegasroofing', '#vegasmoms', '#vegasrealestate',
     ];
   }
 
@@ -118,6 +129,68 @@ class SocialMediaMonitorAgent extends BaseAgent {
           "Just moved to Vegas and everything needs fixing. {service} recommendations?",
         ],
         weight: 2,
+      },
+      {
+        platform: 'tiktok',
+        pattern: 'new_homeowner',
+        templates: [
+          "POV: you just bought a house in {neighborhood} and the {service} is already broken 😭 #vegaslocal #newhomeowner",
+          "Day 1 in our new Vegas home and we need {service} ASAP! #lasvegashomes #{neighborhood}",
+          "House tour part 3: the {service} that needs work 😅 {zip} life #vegaslife",
+          "Vegas heat broke our {service} on move-in day! Help! #vegaslocal #newhome",
+        ],
+        weight: 4,
+      },
+      {
+        platform: 'tiktok',
+        pattern: 'renovation_reveal',
+        templates: [
+          "Before vs After: our {neighborhood} {service} renovation! #vegashomeimprovement #transformation",
+          "We hired the BEST {service} pro in {zip} and look at this!! #vegaslocal #homereno",
+          "DIY {service} fail... had to call the pros 🤦‍♀️ #vegaslife #homefail",
+          "Vegas home makeover: {service} edition! From desert drab to fab 💅 #{neighborhood}",
+        ],
+        weight: 3,
+      },
+      {
+        platform: 'tiktok',
+        pattern: 'complaint_viral',
+        templates: [
+          "Story time: how I got scammed by a {service} contractor in Vegas 😡 #vegaslocal #scam",
+          "PSA: never hire [company] for {service} in {neighborhood}! #vegaslife #warned",
+          "POV: your {service} contractor ghosts you mid-project in 110° heat #vegasproblems",
+        ],
+        weight: 3,
+      },
+      {
+        platform: 'instagram',
+        pattern: 'new_homeowner',
+        templates: [
+          "New keys, who dis? 🏡 Just closed in {neighborhood}! Now I need {service} recommendations pls! #lasvegashomes #newhomeowner",
+          "Our first home in Vegas! {neighborhood} bound! Any {service} pros you trust? #vegaslife #homeowner",
+          "Swipe for our new {neighborhood} home tour → Yes, the {service} needs work 😂 #vegaslocal #fixerupper",
+        ],
+        weight: 3,
+      },
+      {
+        platform: 'instagram',
+        pattern: 'renovation_inspiration',
+        templates: [
+          "Dreaming of our {service} renovation ✨ {neighborhood} home inspo #vegashomeimprovement #homedesign",
+          "Before & After {service} in our Vegas home! #transformationtuesday #vegaslocal",
+          "Hiring for {service} in {zip}! Send me your portfolios 📩 #vegascontractor #home Reno",
+        ],
+        weight: 2,
+      },
+      {
+        platform: 'instagram',
+        pattern: 'emergency_story',
+        templates: [
+          "Not our {service} breaking at 2am in 115° Vegas heat 😭 Emergency {service} needed stat! #vegasproblems #sendhelp",
+          "When your {service} floods the garage on a Saturday night… Vegas contractors who answer after hours? #emergency #vegaslocal",
+          "POV: monsoon season in Vegas and your {service} is done for 🌧️ #{neighborhood} #vegasweather",
+        ],
+        weight: 3,
       },
     ];
 

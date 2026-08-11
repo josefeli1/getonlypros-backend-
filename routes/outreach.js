@@ -150,6 +150,109 @@ The GetOnlyPros Team`,
     sms: `Hi {{name}}! Your {{neighborhood}} neighbors' top {{serviceType}} picks + ${{giftAmount}} welcome gift: getonlypros.com/neighbors/{{leadId}}`,
     delay: 2 * 60 * 60 * 1000, // 2 hour delay
   },
+
+  TIKTOK_NEW_HOME: {
+    subject: "🎉 We Saw Your TikTok — Welcome to {{neighborhood}}!",
+    body: `Hi {{name}},
+
+We saw your TikTok about your new home in {{neighborhood}}! 🏠 Congrats! That "new keys, who dis?" energy is EVERYTHING.
+
+Vegas new homeowner starter pack:
+🔥 AC inspection (before that first 115° day hits)
+🏊 Pool check (if you've got one — Vegas pools need love)
+💧 Water softener (our water is basically liquid rock)
+☀️ Solar quote (NV Energy bills are no joke)
+
+**Viral-Worthy Welcome: ${{giftAmount}} Off Your First Service**
+
+We partner with the highest-rated contractors in {{zipCode}} — the ones your neighbors actually post about.
+
+👉 Claim your welcome gift: https://getonlypros.com/tiktok/{{leadId}}
+
+Drop us a follow @getonlypros for more Vegas home tips!
+The GetOnlyPros Team`,
+    sms: `Hey {{name}}! 👋 Saw your TikTok about your new {{neighborhood}} home! ${{giftAmount}} welcome gift for being awesome: getonlypros.com/tiktok/{{leadId}}`,
+    dm: `Hey! 💛 Saw your house tour on TikTok — congrats on the new place in {{neighborhood}}! We're GetOnlyPros, the platform that matches Vegas homeowners with vetted local contractors. New homeowner gift: ${{giftAmount}} off your first service. Link in bio! Welcome to the neighborhood! 🌵`,
+    delay: 0,
+  },
+
+  TIKTOK_EMERGENCY: {
+    subject: "🚨 Saw Your TikTok — We're Sending Help ASAP",
+    body: `Hi {{name}},
+
+We saw your TikTok about your {{serviceType}} emergency and WOW — that looks stressful. 115° Vegas heat with no AC is basically a survival situation. 😰
+
+**We're on it:**
+🚑 {{contractorCount}} emergency {{serviceType}} contractors in {{zipCode}}
+⏱️ Average response: 45 minutes
+💰 Emergency credit: ${{giftAmount}} applied to your account
+
+👉 Get emergency help NOW: https://getonlypros.com/emergency/{{leadId}}
+
+What happens:
+1. Describe your emergency (attach TikTok link if you want — our contractors love context)
+2. Get matched with an available pro in {{zipCode}}
+3. They call you within 30 minutes
+4. ${{giftAmount}} credit applied automatically
+
+You've got this. And we've got you.
+The GetOnlyPros Team`,
+    sms: `{{name}}, saw your TikTok! 😰 ${{giftAmount}} emergency credit applied. Help in 30 min: getonlypros.com/emergency/{{leadId}}`,
+    dm: `Saw your TikTok about the {{serviceType}} situation! 😰 We've got emergency contractors in {{zipCode}} who can be there in 45 min. ${{giftAmount}} emergency credit on us. DM us or tap the link! 🆘`,
+    delay: 0,
+  },
+
+  INSTAGRAM_HOME_RENO: {
+    subject: "Your {{serviceType}} Reno — Let's Make It IG-Worthy ✨",
+    body: `Hi {{name}},
+
+Your {{serviceType}} renovation content in {{neighborhood}}? *chef's kiss* 👌
+
+We saw your before/after post and had to reach out. If you're planning more projects, here's the tea on Vegas-specific {{serviceType}} work:
+
+🌵 Desert-appropriate materials (heat resistant!)
+🏘️ HOA compliance ({{neighborhood}} requires arch review — we handle permits)
+💰 NV Energy rebates up to $3,000 for energy-efficient upgrades
+📸 Instagram-worthy finishes (because your feed deserves it)
+
+**Creator Perk: ${{giftAmount}} Off Your Project**
+
+Plus: Ask about our "Before & After" partnership — we feature amazing transformations on our IG with credit to you!
+
+👉 Book your free consult: https://getonlypros.com/reno/{{leadId}}
+
+Keep creating!
+The GetOnlyPros Team`,
+    sms: `Hi {{name}}! Your {{serviceType}} reno post 🔥 ${{giftAmount}} creator perk + free design consult: getonlypros.com/reno/{{leadId}}`,
+    dm: `Hey! ✨ Saw your {{serviceType}} renovation post — looks incredible! We're GetOnlyPros, connecting Vegas homeowners with the best local contractors. Want to make your next project even more stunning? ${{giftAmount}} off + we might feature your transformation! DM us! 💫`,
+    delay: 60 * 60 * 1000, // 1 hour
+  },
+
+  INSTAGRAM_CONTRACTOR_FAIL: {
+    subject: "You Deserve Better — Here's ${{giftAmount}} to Prove It 💯",
+    body: `Hi {{name}},
+
+We saw your Instagram Story about your contractor nightmare. That is NOT okay. 😤
+
+**Real talk:** The Vegas contractor market is full of sketchy operators. Here's how we're different:
+
+✅ 1 contractor per zip code per service (no lead sharing — YOUR pro, exclusively)
+✅ Licensed, bonded, insured (we verify everything)
+✅ Real reviews from {{neighborhood}} neighbors
+✅ If they ghost you, we ban them + refund 100%
+
+**Trust Repair Gift: ${{giftAmount}} Off**
+
+We can't fix your last contractor's mess. But we can make sure your NEXT project goes perfectly.
+
+👉 See vetted {{serviceType}} pros in {{zipCode}}: https://getonlypros.com/trust/{{leadId}}
+
+You deserve better.
+The GetOnlyPros Team`,
+    sms: `{{name}}, saw your Story! 😤 Sorry that happened. We only work with vetted pros. ${{giftAmount}} trust credit: getonlypros.com/trust/{{leadId}}`,
+    dm: `Hey! Saw your Story about the contractor situation — that's so frustrating! 😤 We're GetOnlyPros and we ONLY work with verified, reviewed local pros. No shared leads, no sketchy operators. ${{giftAmount}} trust credit on us. Let's make your next project amazing! 💪`,
+    delay: 30 * 60 * 1000, // 30 min
+  },
 };
 
 // POST /api/outreach/trigger - Trigger outreach for a lead
@@ -162,22 +265,29 @@ router.post('/trigger', requireAuth, async (req, res) => {
       return res.status(404).json({ success: false, message: 'Lead not found' });
     }
     
+    const platform = lead.socialSignal?.platform;
     const lifeEvent = lead.socialSignal?.lifeEvent;
-    if (!lifeEvent || !OUTREACH_TEMPLATES[lifeEvent]) {
+    
+    // Select platform-specific template when available
+    const templateKey = selectTemplateKey(platform, lifeEvent);
+    
+    if (!templateKey || !OUTREACH_TEMPLATES[templateKey]) {
       return res.status(400).json({ success: false, message: 'No outreach template for this lead type' });
     }
     
-    const template = OUTREACH_TEMPLATES[lifeEvent];
+    const template = OUTREACH_TEMPLATES[templateKey];
     const message = personalizeMessage(template, lead);
     
     // In production, this would send via SendGrid/Twilio
     const outreachRecord = {
       leadId: lead._id.toString(),
       lifeEvent,
+      platform,
       channel: channel || 'email',
       subject: message.subject,
       body: message.body,
       sms: message.sms,
+      dm: message.dm,
       sentAt: new Date(),
       status: 'sent',
       opened: false,
@@ -195,7 +305,7 @@ router.post('/trigger', requireAuth, async (req, res) => {
       success: true,
       message: `Outreach sent via ${channel || 'email'}`,
       outreach: outreachRecord,
-      template: lifeEvent,
+      template: templateKey,
       giftCardAmount: lead.giftCardAmount,
     });
   } catch (error) {
@@ -214,8 +324,10 @@ router.post('/batch', requireAuth, requireAdmin, async (req, res) => {
     const results = [];
     
     for (const lead of pendingLeads) {
+      const platform = lead.socialSignal.platform;
       const lifeEvent = lead.socialSignal.lifeEvent;
-      const template = OUTREACH_TEMPLATES[lifeEvent];
+      const templateKey = selectTemplateKey(platform, lifeEvent);
+      const template = OUTREACH_TEMPLATES[templateKey];
       
       if (template) {
         const message = personalizeMessage(template, lead);
@@ -225,6 +337,7 @@ router.post('/batch', requireAuth, requireAdmin, async (req, res) => {
         lead.outreachHistory.push({
           leadId: lead._id.toString(),
           lifeEvent,
+          platform,
           channel: 'email',
           subject: message.subject,
           body: message.body,
@@ -237,6 +350,8 @@ router.post('/batch', requireAuth, requireAdmin, async (req, res) => {
         results.push({
           leadId: lead._id.toString(),
           lifeEvent,
+          platform,
+          template: templateKey,
           status: 'sent',
           giftAmount: lead.giftCardAmount,
         });
@@ -261,13 +376,16 @@ router.get('/templates', async (req, res) => {
       lifeEvent: key,
       subject: template.subject,
       giftAmount: template.body.match(/\$(\d+)/)?.[1] || '0',
-      channels: ['email', 'sms'],
+      channels: template.dm ? ['email', 'sms', 'dm'] : ['email', 'sms'],
       delay: template.delay,
+      platform: key.startsWith('TIKTOK') ? 'tiktok' : key.startsWith('INSTAGRAM') ? 'instagram' : 'universal',
     }));
     
     res.json({
       success: true,
       templates,
+      totalTemplates: templates.length,
+      platformSpecific: templates.filter(t => t.platform !== 'universal').length,
     });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -300,6 +418,14 @@ router.get('/stats', requireAuth, async (req, res) => {
         { event: 'RENOVATION_PLANNED', count: await Lead.countDocuments({ 'socialSignal.lifeEvent': 'RENOVATION_PLANNED' }), avgGift: 150 },
         { event: 'CONTRACTOR_DISAPPOINTMENT', count: await Lead.countDocuments({ 'socialSignal.lifeEvent': 'CONTRACTOR_DISAPPOINTMENT' }), avgGift: 75 },
         { event: 'SEEKING_RECOMMENDATIONS', count: await Lead.countDocuments({ 'socialSignal.lifeEvent': 'SEEKING_RECOMMENDATIONS' }), avgGift: 25 },
+      ],
+      byPlatform: [
+        { platform: 'nextdoor', count: await Lead.countDocuments({ 'socialSignal.platform': 'nextdoor' }) },
+        { platform: 'facebook', count: await Lead.countDocuments({ 'socialSignal.platform': 'facebook' }) },
+        { platform: 'reddit', count: await Lead.countDocuments({ 'socialSignal.platform': 'reddit' }) },
+        { platform: 'twitter', count: await Lead.countDocuments({ 'socialSignal.platform': 'twitter' }) },
+        { platform: 'tiktok', count: await Lead.countDocuments({ 'socialSignal.platform': 'tiktok' }) },
+        { platform: 'instagram', count: await Lead.countDocuments({ 'socialSignal.platform': 'instagram' }) },
       ],
     });
   } catch (error) {
@@ -349,7 +475,32 @@ function personalizeMessage(template, lead) {
     .replace(/{{giftAmount}}/g, giftAmount)
     .replace(/{{leadId}}/g, leadId);
   
-  return { subject, body, sms };
+  let dm = template.dm ? template.dm
+    .replace(/{{name}}/g, name)
+    .replace(/{{neighborhood}}/g, neighborhood)
+    .replace(/{{serviceType}}/g, serviceType)
+    .replace(/{{giftAmount}}/g, giftAmount)
+    .replace(/{{leadId}}/g, leadId)
+    .replace(/{{contractorCount}}/g, '3')
+    .replace(/{{topContractor}}/g, topContractors[serviceType] || 'Top Rated Pro')
+    : null;
+  
+  return { subject, body, sms, dm };
+}
+
+function selectTemplateKey(platform, lifeEvent) {
+  // Try platform-specific template first
+  if (platform === 'tiktok') {
+    if (lifeEvent === 'NEW_HOME_PURCHASE') return 'TIKTOK_NEW_HOME';
+    if (lifeEvent === 'EMERGENCY_NEED') return 'TIKTOK_EMERGENCY';
+  }
+  if (platform === 'instagram') {
+    if (lifeEvent === 'RENOVATION_PLANNED' || lifeEvent === 'NEW_HOME_PURCHASE') return 'INSTAGRAM_HOME_RENO';
+    if (lifeEvent === 'CONTRACTOR_DISAPPOINTMENT') return 'INSTAGRAM_CONTRACTOR_FAIL';
+    if (lifeEvent === 'EMERGENCY_NEED') return 'TIKTOK_EMERGENCY'; // Fallback
+  }
+  // Fallback to universal templates
+  return lifeEvent;
 }
 
 module.exports = router;

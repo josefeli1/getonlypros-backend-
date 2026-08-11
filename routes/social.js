@@ -172,6 +172,20 @@ router.get('/feeds', async (req, res) => {
         status: 'active',
         lastScan: new Date(),
       },
+      {
+        platform: 'tiktok',
+        hashtags: ['#vegaslocal', '#vegaslife', '#lasvegashomes', '#summerlinliving', '#hendersonnv', '#vegashomeimprovement', '#vegaspool', '#vegassolar', '#vegashvac', '#vegasroofing', '#vegasrealestate'],
+        keywords: 35,
+        status: 'active',
+        lastScan: new Date(),
+      },
+      {
+        platform: 'instagram',
+        hashtags: ['#vegaslocal', '#vegaslife', '#lasvegashomes', '#summerlinliving', '#hendersonnv', '#vegashomeimprovement', '#vegaspool', '#vegassolar', '#vegashvac', '#vegasroofing', '#vegasrealestate'],
+        keywords: 32,
+        status: 'active',
+        lastScan: new Date(),
+      },
     ];
     
     res.json({
@@ -228,23 +242,23 @@ router.get('/stats', async (req, res) => {
 function detectLifeEventFromContent(content) {
   const lower = content.toLowerCase();
   
-  if (lower.includes('just bought') || lower.includes('closed on') || lower.includes('new homeowner') || lower.includes('first home') || lower.includes('moved to') || lower.includes('bought a house')) {
+  if (lower.includes('just bought') || lower.includes('closed on') || lower.includes('new homeowner') || lower.includes('first home') || lower.includes('moved to') || lower.includes('bought a house') || lower.includes('new keys') || lower.includes('new house') || lower.includes('house tour') || lower.includes('move-in') || lower.includes('move in')) {
     return { type: 'NEW_HOME_PURCHASE', confidence: 0.92, urgency: 'medium', giftAmount: 100 };
   }
   
-  if (lower.includes('broke') || lower.includes('died') || lower.includes('burst') || lower.includes('flooding') || lower.includes('leaking') || lower.includes('emergency') || lower.includes('now!') || lower.includes('stat')) {
+  if (lower.includes('broke') || lower.includes('died') || lower.includes('burst') || lower.includes('flooding') || lower.includes('leaking') || lower.includes('emergency') || lower.includes('now!') || lower.includes('stat') || lower.includes('asap') || lower.includes('send help') || lower.includes('done for')) {
     return { type: 'EMERGENCY_NEED', confidence: 0.95, urgency: 'high', giftAmount: 50 };
   }
   
-  if (lower.includes('remodel') || lower.includes('renovation') || lower.includes('starting') || lower.includes('project')) {
+  if (lower.includes('remodel') || lower.includes('renovation') || lower.includes('starting') || lower.includes('project') || lower.includes('makeover') || lower.includes('transformation') || lower.includes('before and after') || lower.includes('before vs after')) {
     return { type: 'RENOVATION_PLANNED', confidence: 0.85, urgency: 'low', giftAmount: 150 };
   }
   
-  if (lower.includes('scammed') || lower.includes('bad experience') || lower.includes('never finished') || lower.includes('overcharged') || lower.includes('avoid') || lower.includes('terrible')) {
+  if (lower.includes('scammed') || lower.includes('bad experience') || lower.includes('never finished') || lower.includes('overcharged') || lower.includes('avoid') || lower.includes('terrible') || lower.includes('ghosted') || lower.includes('psa')) {
     return { type: 'CONTRACTOR_DISAPPOINTMENT', confidence: 0.88, urgency: 'medium', giftAmount: 75 };
   }
   
-  if (lower.includes('recommendations') || lower.includes('who do you trust') || lower.includes('suggestions') || lower.includes('looking for')) {
+  if (lower.includes('recommendations') || lower.includes('who do you trust') || lower.includes('suggestions') || lower.includes('looking for') || lower.includes('send me') || lower.includes('portfolio')) {
     return { type: 'SEEKING_RECOMMENDATIONS', confidence: 0.75, urgency: 'low', giftAmount: 25 };
   }
   
