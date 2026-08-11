@@ -34,6 +34,7 @@ const predict_1 = __importDefault(require("./routes/predict"));
 const storm_1 = __importDefault(require("./routes/storm"));
 const social_1 = __importDefault(require("./routes/social"));
 const outreach_1 = __importDefault(require("./routes/outreach"));
+const video_studio_1 = __importDefault(require("./routes/video-studio"));
 const app = (0, express_1.default)();
 exports.app = app;
 const PORT = process.env.PORT || 5000;
@@ -100,6 +101,7 @@ app.use('/api/predict', predict_1.default);
 app.use('/api/storm', storm_1.default);
 app.use('/api/social', social_1.default);
 app.use('/api/outreach', outreach_1.default);
+app.use('/api/video-studio', video_studio_1.default);
 app.use((_req, res) => {
     res.status(404).json({
         success: false,
