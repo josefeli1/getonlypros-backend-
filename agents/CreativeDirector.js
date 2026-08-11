@@ -1,1 +1,308 @@
-const BaseAgent = require('./BaseAgent');const Lead = require('../models/Lead').Lead;const TerritoryLock = require('../models/TerritoryLock').TerritoryLock;/** * CreativeDirector Agent * The strategy brain. Decides WHAT video to make, for WHICH audience, * on WHAT platform, using WHAT angle. Like a CMO + creative strategist. */class CreativeDirector extends BaseAgent {  constructor() {    super('CreativeDirector', 'creative_director');    this.strategies = {      urgency: { weight: 0.25, desc: 'Fear-based, time-sensitive, emergency angles' },      aspiration: { weight: 0.20, desc: 'Dream home, lifestyle upgrade, social proof' },      education: { weight: 0.20, desc: 'Teach something valuable, build trust' },      scarcity: { weight: 0.15, desc: 'Limited spots, exclusive access, FOMO' },      social_proof: { weight: 0.15, desc: 'Reviews, testimonials, neighbor recommendations' },      humor: { weight: 0.05, desc: 'Funny, relatable, meme-style content' },    };  }  async execute() {    console.log(`[${this.name}] Analyzing market signals and creative opportunities...`);    const marketIntel = await this.gatherMarketIntel();    const audienceInsights = await this.analyzeAudience();    const contentPlan = await this.createContentPlan(marketIntel, audienceInsights);    return {      success: true,      contentPlan,      strategies: this.strategies,      decisions: contentPlan.map(p => ({        template: p.templateId,        platform: p.platform,        strategy: p.strategy,        why: p.rationale,        expectedEngagement: p.expectedEngagement,      })),    };  }  async gatherMarketIntel() {    const now = new Date();    const hour = now.getHours();    const month = now.getMonth();    const day = now.getDay();    const oneDayAgo = new Date(now - 24 * 60 * 60 * 1000);    // Real signals from database    const [emergencyLeads, newHomeLeads, renovationLeads, activeTerritories, weatherAlert] = await Promise.all([      Lead.countDocuments({ urgency: 'high', createdAt: { $gte: oneDayAgo } }),      Lead.countDocuments({ 'socialSignal.lifeEvent': 'NEW_HOME_PURCHASE', createdAt: { $gte: oneDayAgo } }),      Lead.countDocuments({ 'socialSignal.lifeEvent': 'RENOVATION_PLANNED', createdAt: { $gte: oneDayAgo } }),      TerritoryLock.countDocuments({ status: 'active' }),      Promise.resolve(month >= 5 && month <= 8 ? 'extreme_heat' : month >= 6 && month <= 9 ? 'monsoon' : 'normal'),    ]);    return {      emergencyLeads,      newHomeLeads,      renovationLeads,      activeTerritories,      weatherAlert,      timeOfDay: hour,      isWeekend: day === 0 || day === 6,      season: month >= 5 && month <= 8 ? 'peak_summer' : month >= 9 && month <= 11 ? 'fall' : month >= 0 && month <= 2 ? 'winter' : 'spring',      dayOfWeek: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][day],    };  }  async analyzeAudience() {    // Analyze which audiences are most active and valuable    const audiences = [      { name: 'new_homeowners', size: 'high', value: 'very_high', platforms: ['tiktok', 'instagram'], bestTime: 'evening' },      { name: 'emergency_seekers', size: 'medium', value: 'extreme', platforms: ['tiktok', 'facebook'], bestTime: 'all_day' },      { name: 'renovation_planners', size: 'medium', value: 'high', platforms: ['instagram', 'youtube'], bestTime: 'weekend_morning' },      { name: 'contractor_prospects', size: 'low', value: 'very_high', platforms: ['linkedin', 'facebook'], bestTime: 'business_hours' },      { name: 'vigilant_homeowners', size: 'very_high', value: 'medium', platforms: ['tiktok', 'instagram'], bestTime: 'evening' },    ];    return audiences;  }  async createContentPlan(marketIntel, audiences) {    const plan = [];    // Decision tree based on market signals    if (marketIntel.emergencyLeads > 5) {      plan.push({        templateId: 'emergency-service',        platform: 'tiktok',        strategy: 'urgency',        rationale: `${marketIntel.emergencyLeads} emergency leads in 24h - high-urgency content converts best`,        expectedEngagement: 'very_high',        targetAudience: 'emergency_seekers',        postingTime: 'immediate',        priority: 1,      });    }    if (marketIntel.newHomeLeads > 3) {      plan.push({        templateId: 'new-homeowner-welcome',        platform: 'instagram',        strategy: 'aspiration',        rationale: `${marketIntel.newHomeLeads} new homeowners detected - welcome them before competitors`,        expectedEngagement: 'high',        targetAudience: 'new_homeowners',        postingTime: 'evening',        priority: 2,      });    }    if (marketIntel.weatherAlert === 'extreme_heat') {      plan.push({        templateId: 'vegas-heat-warning',        platform: 'tiktok',        strategy: 'education',        rationale: 'Peak summer heat = peak AC failure anxiety. Educational content builds trust and drives preventive bookings.',        expectedEngagement: 'very_high',        targetAudience: 'vigilant_homeowners',        postingTime: 'afternoon',        priority: 1,      });    }    if (marketIntel.activeTerritories < 50) {      plan.push({        templateId: 'territory-scarcity',        platform: 'facebook',        strategy: 'scarcity',        rationale: `Only ${marketIntel.activeTerritories} territories claimed. Scarcity drives contractor signups.`,        expectedEngagement: 'high',        targetAudience: 'contractor_prospects',        postingTime: 'business_hours',        priority: 3,      });    }    if (marketIntel.renovationLeads > 2) {      plan.push({        templateId: 'before-after-transformation',        platform: 'instagram',        strategy: 'social_proof',        rationale: `${marketIntel.renovationLeads} renovation signals detected. Visual transformations drive engagement.`,        expectedEngagement: 'high',        targetAudience: 'renovation_planners',        postingTime: 'weekend_morning',        priority: 2,      });    }    // Always include at least one contractor spotlight    plan.push({      templateId: 'contractor-spotlight',      platform: 'tiktok',      strategy: 'social_proof',      rationale: 'Weekly contractor spotlight builds brand trust and showcases exclusive pros.',      expectedEngagement: 'medium',      targetAudience: 'all_homeowners',      postingTime: 'evening',      priority: 4,    });    // If nothing else, add a pro tip    if (plan.length < 2) {      plan.push({        templateId: 'contractor-tip',        platform: 'tiktok',        strategy: 'education',        rationale: 'Educational content performs consistently well and builds authority.',        expectedEngagement: 'medium',        targetAudience: 'vigilant_homeowners',        postingTime: 'evening',        priority: 5,      });    }    return plan.sort((a, b) => a.priority - b.priority);  }  async generateVideoBrief(contentPlanItem) {    // Creates a detailed creative brief for the production pipeline    return {      briefId: `brief_${Date.now()}`,      concept: contentPlanItem.templateId,      strategy: contentPlanItem.strategy,      platform: contentPlanItem.platform,      targetAudience: contentPlanItem.targetAudience,      tone: this.getToneForStrategy(contentPlanItem.strategy),      visualStyle: this.getVisualStyle(contentPlanItem.platform, contentPlanItem.strategy),      duration: this.getDuration(contentPlanItem.platform),      ratio: contentPlanItem.platform === 'youtube' ? '16:9' : '9:16',      keyMessage: this.getKeyMessage(contentPlanItem.templateId),      callToAction: this.getCTA(contentPlanItem.templateId, contentPlanItem.platform),      mustInclude: this.getMustInclude(contentPlanItem.templateId),      avoid: this.getAvoid(contentPlanItem.strategy),      musicVibe: this.getMusicVibe(contentPlanItem.strategy),      lasVegasElements: ['desert landscape', 'palm trees', 'red rock', 'strip skyline', 'summer heat visual', 'pool', 'solar panels'],    };  }  getToneForStrategy(strategy) {    const tones = {      urgency: 'panic-but-solution, fast-paced, empathetic',      aspiration: 'dreamy, celebratory, premium, inspiring',      education: 'authoritative, helpful, clear, trustworthy',      scarcity: 'urgent, exclusive, countdown, limited',      social_proof: 'authentic, warm, community-focused, real',      humor: 'playful, self-aware, relatable, meme-literate',    };    return tones[strategy] || 'professional and engaging';  }  getVisualStyle(platform, strategy) {    const styles = {      tiktok: 'fast cuts, text overlays, trending transitions, vertical 9:16, mobile-native',      instagram: 'polished but authentic, Reels-style, smooth transitions, aspirational aesthetic',      youtube: 'informational, clear B-roll, talking head friendly, 16:9 or 9:16 Shorts',      facebook: 'shareable, emotion-driven, longer-form friendly, community-focused',    };    const strategyStyles = {      urgency: 'red/orange grading, flashing alerts, countdown timers, fast zooms',      aspiration: 'golden hour, luxury homes, warm tones, smooth drone shots',      education: 'clean graphics, text callouts, before/after splits, infographics',      scarcity: 'dark background, gold accents, limited edition feel, countdown graphics',      social_proof: 'real footage, authentic lighting, testimonial style, community photos',      humor: 'meme formats, unexpected cuts, sound effects, green screen potential',    };    return `${styles[platform]}. ${strategyStyles[strategy] || 'clean and professional'}`;  }  getDuration(platform) {    return { tiktok: 15, instagram: 15, youtube: 60, facebook: 30 }[platform] || 15;  }  getKeyMessage(templateId) {    const messages = {      'contractor-spotlight': 'This is the ONLY trusted pro in your neighborhood',      'new-homeowner-welcome': 'Welcome to Vegas - heres everything your new home needs',      'emergency-service': 'Help is 45 minutes away, no matter when',      'before-after-transformation': 'See what a real pro can do - this could be your home',      'vegas-heat-warning': 'Your AC will fail this summer unless you act now',      'contractor-tip': 'This 5-minute fix saves you $8,500',      'lead-gen-offer': 'Free money for your home project - no catch',      'customer-testimonial': 'Real Vegas homeowners trust us - heres proof',      'monsoon-prep': 'The storm is coming - is your home ready?',      'territory-scarcity': 'Only 1 spot left - lock your zip code today',    };    return messages[templateId] || 'GetOnlyPros connects you with the best Vegas contractors';  }  getCTA(templateId, platform) {    const ctas = {      'contractor-spotlight': platform === 'tiktok' ? 'Link in bio - book exclusively' : 'Tap link to claim your zip',      'new-homeowner-welcome': 'getonlypros.com/welcome - $100 gift waiting',      'emergency-service': 'getonlypros.com/emergency - 45 min response',      'before-after-transformation': 'DM us for the same contractor',      'vegas-heat-warning': 'Free inspection at link in bio',      'contractor-tip': 'Full checklist FREE - link in bio',      'lead-gen-offer': 'First 50 only - tap NOW',      'customer-testimonial': 'Join 10,000+ happy homeowners - link in bio',      'monsoon-prep': 'Book free inspection before the storm',      'territory-scarcity': 'getonlypros.com/claim - lock it now',    };    return ctas[templateId] || 'Visit getonlypros.com';  }  getMustInclude(templateId) {    const must = {      'contractor-spotlight': ['contractor face/name', '5-star visual', 'zip code mention', 'exclusive claim'],      'new-homeowner-welcome': ['celebration moment', 'Vegas landmarks', 'gift card visual', 'service icons'],      'emergency-service': ['broken system visual', '45min timer', 'contractor arrival', 'phone number'],      'before-after-transformation': ['split screen or wipe', 'dramatic reveal', 'price comparison', 'contractor credit'],      'vegas-heat-warning': ['thermometer 115F', 'AC unit struggling', 'cost comparison', 'preventive solution'],      'contractor-tip': ['DIY action shot', 'expert face', 'checklist graphic', 'money saved counter'],      'lead-gen-offer': ['gift card visual', 'countdown', 'scarcity number', 'tap animation'],      'customer-testimonial': ['real customer face', 'before photos', 'after photos', '5-star overlay'],      'monsoon-prep': ['storm clouds', 'roof inspection', 'checklist', 'urgent timer'],      'territory-scarcity': ['map graphic', '1 spot left', 'contractor count', 'claim button'],    };    return must[templateId] || ['logo', 'CTA', 'branded colors'];  }  getAvoid(strategy) {    const avoid = {      urgency: ['being insensitive to real emergencies', 'fake urgency', 'exaggerating danger'],      aspiration: ['unrealistic expectations', 'making homeowners feel inadequate', 'over-promising'],      education: ['being condescending', 'too technical', 'boring length'],      scarcity: ['false scarcity', 'pressure tactics', 'fear-mongering'],      social_proof: ['fake reviews', 'stock photos as real people', 'unverifiable claims'],      humor: ['offensive humor', 'making fun of homeowners', 'insider jokes'],    };    return avoid[strategy] || ['generic content', 'competitor mentions', 'negative framing'];  }  getMusicVibe(strategy) {    const vibes = {      urgency: 'tense building, heartbeat, alarm sounds, then resolution',      aspiration: 'upbeat pop, aspirational, inspiring, modern',      education: 'clean, subtle, professional, not distracting',      scarcity: 'countdown ticking, dramatic pause, triumphant reveal',      social_proof: 'warm acoustic, trustworthy, community feel',      humor: 'trending audio, unexpected drop, meme sound effects',    };    return vibes[strategy] || 'upbeat and professional';  }}module.exports = CreativeDirector;
+const BaseAgent = require('./BaseAgent');
+const Lead = require('../models/Lead').Lead;
+const TerritoryLock = require('../models/TerritoryLock').TerritoryLock;
+
+/**
+ * CreativeDirector Agent
+ * The strategy brain. Decides WHAT video to make, for WHICH audience,
+ * on WHAT platform, using WHAT angle. Like a CMO + creative strategist.
+ */
+class CreativeDirector extends BaseAgent {
+  constructor() {
+    super('CreativeDirector', 'creative_director');
+    this.strategies = {
+      urgency: { weight: 0.25, desc: 'Fear-based, time-sensitive, emergency angles' },
+      aspiration: { weight: 0.20, desc: 'Dream home, lifestyle upgrade, social proof' },
+      education: { weight: 0.20, desc: 'Teach something valuable, build trust' },
+      scarcity: { weight: 0.15, desc: 'Limited spots, exclusive access, FOMO' },
+      social_proof: { weight: 0.15, desc: 'Reviews, testimonials, neighbor recommendations' },
+      humor: { weight: 0.05, desc: 'Funny, relatable, meme-style content' },
+    };
+  }
+
+  async execute() {
+    console.log(`[${this.name}] Analyzing market signals and creative opportunities...`);
+    const marketIntel = await this.gatherMarketIntel();
+    const audienceInsights = await this.analyzeAudience();
+    const contentPlan = await this.createContentPlan(marketIntel, audienceInsights);
+    return {
+      success: true,
+      contentPlan,
+      strategies: this.strategies,
+      decisions: contentPlan.map(p => ({
+        template: p.templateId,
+        platform: p.platform,
+        strategy: p.strategy,
+        why: p.rationale,
+        expectedEngagement: p.expectedEngagement,
+      })),
+    };
+  }
+
+  async gatherMarketIntel() {
+    const now = new Date();
+    const hour = now.getHours();
+    const month = now.getMonth();
+    const day = now.getDay();
+    const oneDayAgo = new Date(now - 24 * 60 * 60 * 1000);
+
+    // Real signals from database
+    const [emergencyLeads, newHomeLeads, renovationLeads, activeTerritories, weatherAlert] = await Promise.all([
+      Lead.countDocuments({ urgency: 'high', createdAt: { $gte: oneDayAgo } }).catch(() => 0),
+      Lead.countDocuments({ lifeEvent: 'new_homeowner', createdAt: { $gte: oneDayAgo } }).catch(() => 0),
+      Lead.countDocuments({ tags: { $in: ['renovation', 'remodel'] }, createdAt: { $gte: oneDayAgo } }).catch(() => 0),
+      TerritoryLock.countDocuments({ status: 'active' }).catch(() => 0),
+      this.checkWeatherAlert(),
+    ]);
+
+    // Determine season
+    const season = month >= 5 && month <= 8 ? 'summer' : month >= 11 || month <= 1 ? 'winter' : 'mild';
+    const isWeekend = day === 0 || day === 6;
+    const isEvening = hour >= 17;
+
+    return {
+      timestamp: now.toISOString(),
+      signals: {
+        emergencyLeads,
+        newHomeLeads,
+        renovationLeads,
+        activeTerritories,
+        weatherAlert,
+      },
+      context: {
+        season,
+        isWeekend,
+        isEvening,
+        hour,
+        dayOfWeek: day,
+      },
+      opportunities: this.identifyOpportunities({ emergencyLeads, newHomeLeads, renovationLeads, weatherAlert, season }),
+    };
+  }
+
+  async checkWeatherAlert() {
+    // Check for extreme weather that triggers emergency content
+    const month = new Date().getMonth();
+    if (month >= 5 && month <= 8) {
+      return { active: true, type: 'extreme_heat', temperature: 110, message: 'Vegas heat wave - AC emergency content needed' };
+    }
+    if (month >= 6 && month <= 9) {
+      return { active: true, type: 'monsoon', message: 'Monsoon season - roof/leak emergency content needed' };
+    }
+    return { active: false };
+  }
+
+  identifyOpportunities(signals) {
+    const ops = [];
+    if (signals.emergencyLeads >= 3) {
+      ops.push({ type: 'emergency_spike', priority: 'critical', message: `${signals.emergencyLeads} emergency leads in 24h - create urgency content` });
+    }
+    if (signals.newHomeLeads >= 2) {
+      ops.push({ type: 'new_homeowner_wave', priority: 'high', message: 'New homeowners detected - create welcome content' });
+    }
+    if (signals.weatherAlert.active) {
+      ops.push({ type: 'weather_trigger', priority: 'high', message: `Weather alert: ${signals.weatherAlert.type} - create timely content` });
+    }
+    if (signals.activeTerritories < 5) {
+      ops.push({ type: 'territory_scarcity', priority: 'medium', message: 'Few locked territories - create scarcity content for contractors' });
+    }
+    return ops;
+  }
+
+  async analyzeAudience() {
+    return {
+      primary: {
+        segment: 'las_vegas_homeowners',
+        age: '30-55',
+        income: '75k-150k',
+        painPoints: ['AC failing in 110F heat', 'Finding trusted contractors', 'Avoiding scams'],
+        platforms: { tiktok: 0.35, instagram: 0.30, facebook: 0.20, youtube: 0.15 },
+      },
+      secondary: {
+        segment: 'new_homeowners',
+        age: '28-40',
+        platforms: { tiktok: 0.45, instagram: 0.35, facebook: 0.15, youtube: 0.05 },
+      },
+      contractor: {
+        segment: 'service_contractors',
+        platforms: { facebook: 0.40, youtube: 0.30, instagram: 0.20, tiktok: 0.10 },
+      },
+    };
+  }
+
+  async createContentPlan(marketIntel, audience) {
+    const plan = [];
+    const { signals, context } = marketIntel;
+
+    // Priority 1: Emergency content if needed
+    if (signals.emergencyLeads >= 3 || signals.weatherAlert.active) {
+      plan.push({
+        templateId: 'emergency-service',
+        platform: 'tiktok',
+        strategy: 'urgency',
+        rationale: `High emergency lead volume (${signals.emergencyLeads}) demands immediate attention-grabbing content`,
+        expectedEngagement: 'very_high',
+        urgency: 'now',
+        targetAudience: 'primary',
+      });
+    }
+
+    // Priority 2: New homeowner welcome
+    if (signals.newHomeLeads >= 2) {
+      plan.push({
+        templateId: 'new-homeowner-welcome',
+        platform: 'instagram',
+        strategy: 'aspiration',
+        rationale: 'New homeowners are in discovery mode - perfect time to introduce GetOnlyPros',
+        expectedEngagement: 'high',
+        urgency: 'today',
+        targetAudience: 'secondary',
+      });
+    }
+
+    // Priority 3: Territory scarcity (contractor-focused)
+    if (signals.activeTerritories < 10) {
+      plan.push({
+        templateId: 'territory-scarcity',
+        platform: 'facebook',
+        strategy: 'scarcity',
+        rationale: 'Low territory lock-in creates FOMO for contractors',
+        expectedEngagement: 'medium',
+        urgency: 'this_week',
+        targetAudience: 'contractor',
+      });
+    }
+
+    // Priority 4: Seasonal content
+    if (context.season === 'summer') {
+      plan.push({
+        templateId: 'vegas-heat-warning',
+        platform: 'tiktok',
+        strategy: 'education',
+        rationale: 'Summer heat is universal Vegas experience - educational content performs well',
+        expectedEngagement: 'high',
+        urgency: 'today',
+        targetAudience: 'primary',
+      });
+    }
+
+    // Priority 5: Social proof (always works)
+    plan.push({
+      templateId: 'customer-testimonial',
+      platform: 'instagram',
+      strategy: 'social_proof',
+      rationale: 'Social proof is evergreen - build trust continuously',
+      expectedEngagement: 'medium',
+      urgency: 'this_week',
+      targetAudience: 'primary',
+    });
+
+    // Priority 6: Contractor spotlight
+    plan.push({
+      templateId: 'contractor-spotlight',
+      platform: 'youtube',
+      strategy: 'social_proof',
+      rationale: 'Deep-dive contractor stories build long-term brand trust',
+      expectedEngagement: 'medium',
+      urgency: 'this_week',
+      targetAudience: 'primary',
+    });
+
+    return plan;
+  }
+
+  async generateVideoBrief(contentPlanItem) {
+    const { templateId, platform, strategy, targetAudience } = contentPlanItem;
+    const audience = await this.analyzeAudience();
+    const target = audience[targetAudience] || audience.primary;
+
+    return {
+      concept: templateId,
+      platform,
+      strategy,
+      targetAudience: target,
+      keyMessage: this.getKeyMessage(templateId, strategy),
+      tone: this.getToneForStrategy(strategy),
+      duration: this.getDurationForPlatform(platform),
+      lasVegasElements: ['desert landscape', 'palm trees', 'red rock', 'summer heat', 'Las Vegas skyline'],
+      callToAction: this.getCTAForTemplate(templateId),
+      hooks: this.getHookOptions(templateId, strategy),
+      hashtags: this.getHashtagsForPlatform(platform),
+    };
+  }
+
+  getKeyMessage(templateId, strategy) {
+    const messages = {
+      'emergency-service': 'When your AC dies at 2am in 110F Vegas heat, we have the ONLY pro you need',
+      'new-homeowner-welcome': 'Welcome to Vegas! Here is your $100 gift and the only contractor list you will ever need',
+      'territory-scarcity': 'Only 1 contractor per zip code. Lock yours before your competitor does',
+      'vegas-heat-warning': 'Your AC is working 3x harder this summer. Here is what happens if you ignore it',
+      'customer-testimonial': 'Real Vegas homeowner. Real emergency. Real result.',
+      'contractor-spotlight': 'Meet the most trusted AC pro in Summerlin - 847 5-star reviews',
+    };
+    return messages[templateId] || 'GetOnlyPros - trusted home services in Las Vegas';
+  }
+
+  getToneForStrategy(strategy) {
+    const tones = {
+      urgency: 'Urgent, alarming, action-oriented. Short punchy sentences. Use numbers and time pressure.',
+      aspiration: 'Inspiring, warm, dream-building. Show the lifestyle. Use golden hour visuals.',
+      education: 'Helpful, authoritative, clear. Teach something valuable. Use before/after visuals.',
+      scarcity: 'Exclusive, limited, FOMO-driven. Countdown timers. Only X spots left.',
+      social_proof: 'Authentic, relatable, trustworthy. Real people. Real stories. Real results.',
+      humor: 'Funny, relatable, meme-aware. Self-deprecating. Vegas-specific jokes.',
+    };
+    return tones[strategy] || tones.social_proof;
+  }
+
+  getDurationForPlatform(platform) {
+    const durations = { tiktok: 15, instagram: 30, youtube: 45, facebook: 30 };
+    return durations[platform] || 15;
+  }
+
+  getCTAForTemplate(templateId) {
+    const ctas = {
+      'emergency-service': 'Save this post. When your AC dies, you will know exactly who to call.',
+      'new-homeowner-welcome': 'Comment WELCOME and we will DM you your $100 gift card + checklist',
+      'territory-scarcity': 'Contractors: DM us CLAIM + your zip to lock your territory now',
+      'vegas-heat-warning': 'Book your free pre-summer AC check at link in bio. Zero obligation.',
+      'customer-testimonial': 'Link in bio to meet the only vetted pros in your zip code',
+      'contractor-spotlight': 'Book David directly through link in bio. Summerlin 89135 only.',
+    };
+    return ctas[templateId] || 'Link in bio for trusted Vegas contractors';
+  }
+
+  getHookOptions(templateId, strategy) {
+    const hooks = {
+      'emergency-service': [
+        'Your AC is DYING and you do not even know it...',
+        '2am. 110 degrees. My AC just died. Then THIS happened...',
+        'Vegas homeowners: this mistake costs $8,500 every summer',
+      ],
+      'new-homeowner-welcome': [
+        'Just bought a house in Vegas? Here is what nobody tells you...',
+        'Welcome to the neighborhood! Here is $100 + the only contractor list you need',
+        'New homeowner? Avoid these 3 scams in your first 90 days',
+      ],
+      'territory-scarcity': [
+        'Only 1 spot left in 89135...',
+        'Your competitor just locked 3 zip codes. Here is how to catch up',
+        'We only work with ONE contractor per area. Is it you?',
+      ],
+    };
+    return hooks[templateId] || ['Wait for it...', 'You need to see this', 'Vegas homeowners, STOP scrolling'];
+  }
+
+  getHashtagsForPlatform(platform) {
+    const base = ['#GetOnlyPros', '#LasVegas', '#VegasLocal'];
+    const platformTags = {
+      tiktok: ['#FYP', '#ForYou', '#VegasTikTok', '#HomeTok'],
+      instagram: ['#Reels', '#VegasLife', '#HomeImprovement', '#LasVegasHomes'],
+      youtube: ['#Shorts', '#VegasShorts', '#HomeTips'],
+      facebook: ['#VegasCommunity', '#LocalBusiness', '#VegasHomes'],
+    };
+    return [...base, ...(platformTags[platform] || [])];
+  }
+}
+
+module.exports = CreativeDirector;

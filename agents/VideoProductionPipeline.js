@@ -1,1 +1,178 @@
-const CreativeDirector = require('./CreativeDirector');const ScriptWriter = require('./ScriptWriter');const VisualDirector = require('./VisualDirector');const VideoProducer = require('./VideoProducer');const VideoEditor = require('./VideoEditor');const SocialMediaManager = require('./SocialMediaManager');const AnalyticsReviewer = require('./AnalyticsReviewer');/** * VideoProductionPipeline * Orchestrates all 7 video production agents in sequence: * 1. CreativeDirector - Strategy & concept * 2. ScriptWriter - Hook, body, CTA * 3. VisualDirector - Storyboard & visual prompts * 4. VideoProducer - Generate video assets * 5. VideoEditor - Post-production * 6. SocialMediaManager - Captions, hashtags, schedule * 7. AnalyticsReviewer - Performance analysis */class VideoProductionPipeline {  constructor() {    this.agents = {      creativeDirector: new CreativeDirector(),      scriptWriter: new ScriptWriter(),      visualDirector: new VisualDirector(),      videoProducer: new VideoProducer(),      videoEditor: new VideoEditor(),      socialMediaManager: new SocialMediaManager(),      analyticsReviewer: new AnalyticsReviewer(),    };    this.pipelineStatus = 'idle';    this.currentProject = null;  }  async execute(projectConfig = {}) {    console.log('=== VIDEO PRODUCTION PIPELINE STARTING ===');    this.pipelineStatus = 'running';    const startTime = Date.now();    const results = {};    try {      // Stage 1: Creative Direction      console.log('--- Stage 1: CreativeDirector ---');      const creativeResult = await this.agents.creativeDirector.execute();      results.creative = creativeResult;      const topPriority = creativeResult.contentPlan[0];      const brief = await this.agents.creativeDirector.generateVideoBrief(topPriority);      results.brief = brief;      // Stage 2: Script Writing      console.log('--- Stage 2: ScriptWriter ---');      const scriptResult = await this.agents.scriptWriter.execute(brief);      results.script = scriptResult.script;      results.hookFormula = scriptResult.hookFormula;      // Stage 3: Visual Direction      console.log('--- Stage 3: VisualDirector ---');      const visualResult = await this.agents.visualDirector.execute(results.script);      results.storyboard = visualResult.storyboard;      results.videoPrompts = visualResult.videoPrompts;      results.shotList = visualResult.shotList;      // Stage 4: Video Production      console.log('--- Stage 4: VideoProducer ---');      const productionResult = await this.agents.videoProducer.execute(results.storyboard, results.videoPrompts);      results.production = productionResult;      // Stage 5: Video Editing      console.log('--- Stage 5: VideoEditor ---');      const editResult = await this.agents.videoEditor.execute(results.production.finalVideo, results.script);      results.editedVideo = editResult.finalVideo;      results.outputSpecs = editResult.specifications;      // Stage 6: Social Media Packaging      console.log('--- Stage 6: SocialMediaManager ---');      const socialResult = await this.agents.socialMediaManager.execute(results.editedVideo, results.script);      results.socialPackage = socialResult.socialPackage;      // Stage 7: Analytics Setup (initial review)      console.log('--- Stage 7: AnalyticsReviewer ---');      const analyticsResult = await this.agents.analyticsReviewer.execute({        views: 0, likes: 0, comments: 0, shares: 0, saves: 0,        profileVisits: 0, linkClicks: 0, leads: 0, watchTime: 0, videoLength: results.script.duration,      });      results.analytics = analyticsResult;      this.pipelineStatus = 'completed';      const duration = Date.now() - startTime;      return {        success: true,        pipelineStatus: this.pipelineStatus,        duration: `${duration}ms`,        stages: {          creative: 'completed',          script: 'completed',          visual: 'completed',          production: 'completed',          editing: 'completed',          social: 'completed',          analytics: 'completed',        },        deliverables: {          strategy: results.creative.contentPlan[0],          script: results.script,          storyboard: results.storyboard,          videoPrompts: results.videoPrompts,          productionLog: results.production,          editedVideo: results.editedVideo,          socialPackage: results.socialPackage,          performancePrediction: results.analytics,        },        nextSteps: [          'Review script and storyboard',          'Approve video prompts for AI generation',          'Generate actual video assets using prompts',          'Apply editing specifications in post-production',          'Schedule social media post with optimized caption/hashtags',          'Monitor performance and run A/B tests',        ],      };    } catch (error) {      this.pipelineStatus = 'failed';      console.error('Pipeline failed:', error);      return {        success: false,        pipelineStatus: this.pipelineStatus,        error: error.message,        completedStages: results,      };    }  }  async quickProduce(type, platform, customizations) {    // Fast-track production for urgent content    console.log(`=== QUICK PRODUCE: ${type} for ${platform} ===`);    const producer = this.agents.videoProducer;    const scriptWriter = this.agents.scriptWriter;    const socialManager = this.agents.socialMediaManager;    // Generate quick script    const quickBrief = {      concept: type,      platform,      strategy: type === 'emergency' ? 'urgency' : type === 'offer' ? 'scarcity' : 'social_proof',      keyMessage: 'Quick message',      lasVegasElements: ['desert landscape', 'palm trees'],    };    const script = await scriptWriter.execute(quickBrief);    // Produce quick video    const video = await producer.produceQuickVideo(type, platform, customizations);    // Package for social    const social = await socialManager.execute(video, script.script);    return {      success: true,      mode: 'quick_produce',      type,      platform,      videoPrompt: video.prompt,      script: script.script,      socialPackage: social.socialPackage,      message: 'Quick production complete. Generate video using the prompt, then post with social package.',    };  }  getStatus() {    return {      status: this.pipelineStatus,      currentProject: this.currentProject,      agents: Object.keys(this.agents),    };  }}module.exports = VideoProductionPipeline;
+const CreativeDirector = require('./CreativeDirector');
+const ScriptWriter = require('./ScriptWriter');
+const VisualDirector = require('./VisualDirector');
+const VideoProducer = require('./VideoProducer');
+const VideoEditor = require('./VideoEditor');
+const SocialMediaManager = require('./SocialMediaManager');
+const AnalyticsReviewer = require('./AnalyticsReviewer');
+
+/**
+ * VideoProductionPipeline
+ * Orchestrates all 7 video production agents in sequence:
+ * 1. CreativeDirector - Strategy & concept
+ * 2. ScriptWriter - Hook, body, CTA
+ * 3. VisualDirector - Storyboard & visual prompts
+ * 4. VideoProducer - Generate video assets
+ * 5. VideoEditor - Post-production
+ * 6. SocialMediaManager - Captions, hashtags, schedule
+ * 7. AnalyticsReviewer - Performance analysis
+ */
+class VideoProductionPipeline {
+  constructor() {
+    this.agents = {
+      creativeDirector: new CreativeDirector(),
+      scriptWriter: new ScriptWriter(),
+      visualDirector: new VisualDirector(),
+      videoProducer: new VideoProducer(),
+      videoEditor: new VideoEditor(),
+      socialMediaManager: new SocialMediaManager(),
+      analyticsReviewer: new AnalyticsReviewer(),
+    };
+    this.pipelineStatus = 'idle';
+    this.currentProject = null;
+  }
+
+  async execute(projectConfig = {}) {
+    console.log('=== VIDEO PRODUCTION PIPELINE STARTING ===');
+    this.pipelineStatus = 'running';
+    const startTime = Date.now();
+    const results = {};
+
+    try {
+      // Stage 1: Creative Direction
+      console.log('--- Stage 1: CreativeDirector ---');
+      const creativeResult = await this.agents.creativeDirector.execute();
+      results.creative = creativeResult;
+      const topPriority = creativeResult.contentPlan[0];
+      const brief = await this.agents.creativeDirector.generateVideoBrief(topPriority);
+      results.brief = brief;
+
+      // Stage 2: Script Writing
+      console.log('--- Stage 2: ScriptWriter ---');
+      const scriptResult = await this.agents.scriptWriter.execute(brief);
+      results.script = scriptResult.script;
+      results.hookFormula = scriptResult.hookFormula;
+
+      // Stage 3: Visual Direction
+      console.log('--- Stage 3: VisualDirector ---');
+      const visualResult = await this.agents.visualDirector.execute(results.script);
+      results.storyboard = visualResult.storyboard;
+      results.videoPrompts = visualResult.videoPrompts;
+      results.shotList = visualResult.shotList;
+
+      // Stage 4: Video Production
+      console.log('--- Stage 4: VideoProducer ---');
+      const productionResult = await this.agents.videoProducer.execute(results.storyboard, results.videoPrompts);
+      results.production = productionResult;
+
+      // Stage 5: Video Editing
+      console.log('--- Stage 5: VideoEditor ---');
+      const editResult = await this.agents.videoEditor.execute(results.production.finalVideo, results.script);
+      results.editedVideo = editResult.finalVideo;
+      results.outputSpecs = editResult.specifications;
+
+      // Stage 6: Social Media Packaging
+      console.log('--- Stage 6: SocialMediaManager ---');
+      const socialResult = await this.agents.socialMediaManager.execute(results.editedVideo, results.script);
+      results.socialPackage = socialResult.socialPackage;
+
+      // Stage 7: Analytics Setup (initial review)
+      console.log('--- Stage 7: AnalyticsReviewer ---');
+      const analyticsResult = await this.agents.analyticsReviewer.execute({
+        views: 0, likes: 0, comments: 0, shares: 0, saves: 0,
+        profileVisits: 0, linkClicks: 0, leads: 0, watchTime: 0, videoLength: results.script.duration,
+      });
+      results.analytics = analyticsResult;
+
+      this.pipelineStatus = 'completed';
+      const duration = Date.now() - startTime;
+
+      return {
+        success: true,
+        pipelineStatus: this.pipelineStatus,
+        duration: `${duration}ms`,
+        stages: {
+          creative: 'completed',
+          script: 'completed',
+          visual: 'completed',
+          production: 'completed',
+          editing: 'completed',
+          social: 'completed',
+          analytics: 'completed',
+        },
+        deliverables: {
+          strategy: results.creative.contentPlan[0],
+          script: results.script,
+          storyboard: results.storyboard,
+          videoPrompts: results.videoPrompts,
+          productionLog: results.production,
+          editedVideo: results.editedVideo,
+          socialPackage: results.socialPackage,
+          performancePrediction: results.analytics,
+        },
+        nextSteps: [
+          'Review script and storyboard',
+          'Approve video prompts for AI generation',
+          'Generate actual video assets using prompts',
+          'Apply editing specifications in post-production',
+          'Schedule social media post with optimized caption/hashtags',
+          'Monitor performance and run A/B tests',
+        ],
+      };
+    } catch (error) {
+      this.pipelineStatus = 'failed';
+      console.error('Pipeline failed:', error);
+      return {
+        success: false,
+        pipelineStatus: this.pipelineStatus,
+        error: error.message,
+        completedStages: results,
+      };
+    }
+  }
+
+  async quickProduce(type, platform, customizations) {
+    // Fast-track production for urgent content
+    console.log(`=== QUICK PRODUCE: ${type} for ${platform} ===`);
+    const producer = this.agents.videoProducer;
+    const scriptWriter = this.agents.scriptWriter;
+    const socialManager = this.agents.socialMediaManager;
+
+    // Generate quick script
+    const quickBrief = {
+      concept: type,
+      platform,
+      strategy: type === 'emergency' ? 'urgency' : type === 'offer' ? 'scarcity' : 'social_proof',
+      keyMessage: 'Quick message',
+      lasVegasElements: ['desert landscape', 'palm trees'],
+    };
+    const script = await scriptWriter.execute(quickBrief);
+
+    // Produce quick video
+    const video = await producer.produceQuickVideo(type, platform, customizations);
+
+    // Package for social
+    const social = await socialManager.execute(video, script.script);
+
+    return {
+      success: true,
+      mode: 'quick_produce',
+      type,
+      platform,
+      videoPrompt: video.prompt,
+      script: script.script,
+      socialPackage: social.socialPackage,
+      message: 'Quick production complete. Generate video using the prompt, then post with social package.',
+    };
+  }
+
+  getStatus() {
+    return {
+      status: this.pipelineStatus,
+      currentProject: this.currentProject,
+      agents: Object.keys(this.agents),
+    };
+  }
+}
+
+module.exports = VideoProductionPipeline;

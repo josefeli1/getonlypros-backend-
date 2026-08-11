@@ -1,1 +1,375 @@
-const BaseAgent = require('./BaseAgent');const Lead = require('../models/Lead').Lead;const TerritoryLock = require('../models/TerritoryLock').TerritoryLock;/** * ScriptWriter Agent * The wordsmith. Writes hooks that stop the scroll, bodies that deliver value,  * and CTAs that convert. Masters TikTok/Instagram voice. */class ScriptWriter extends BaseAgent {  constructor() {    super('ScriptWriter', 'script_writer');    this.hookFormulas = [      { name: 'PatternInterrupt', formula: 'You wont believe what [contractor] found in a [neighborhood] home...', effectiveness: 0.92 },      { name: 'FearFactor', formula: 'Your [system] is about to fail and heres the scary part...', effectiveness: 0.88 },      { name: 'SocialProofHook', formula: 'This [neighborhood] homeowner saved $[amount] with one phone call...', effectiveness: 0.85 },      { name: 'CuriosityGap', formula: 'I asked 100 [neighborhood] homeowners about [service]. The #1 answer shocked me.', effectiveness: 0.87 },      { name: 'DirectChallenge', formula: 'If your [system] is over [age] years old, watch this NOW.', effectiveness: 0.90 },      { name: 'StoryOpen', formula: 'Sarah just bought her dream home in [neighborhood]. Then this happened...', effectiveness: 0.84 },      { name: 'Controversy', formula: 'Every [service] contractor in Vegas is lying to you about this...', effectiveness: 0.89 },      { name: 'TimePressure', formula: 'You have 48 hours before this [problem] costs you $[amount].', effectiveness: 0.91 },    ];  }  async execute(brief) {    console.log(`[${this.name}] Writing scroll-stopping script for ${brief?.concept || 'video'}...`);    if (!brief) {      // Standalone execution - generate a sample script      const sampleBrief = {        concept: 'contractor-spotlight',        platform: 'tiktok',        strategy: 'social_proof',        targetAudience: 'new_homeowners',        keyMessage: 'This is the ONLY trusted pro in your neighborhood',        callToAction: 'Link in bio - book exclusively',        tone: 'authentic, warm, community-focused',        duration: 15,        lasVegasElements: ['desert landscape', 'palm trees', 'Summerlin homes'],      };      const script = await this.writeScript(sampleBrief);      return { success: true, script, hookFormula: this.selectHookFormula(sampleBrief.strategy) };    }    const script = await this.writeScript(brief);    return { success: true, script, hookFormula: this.selectHookFormula(brief.strategy), wordCount: this.countWords(script) };  }  async writeScript(brief) {    const hook = this.writeHook(brief);    const body = this.writeBody(brief);    const cta = this.writeCTA(brief);    const platformNotes = this.writePlatformNotes(brief.platform);    const soundCue = this.writeSoundCue(brief);    const visualNotes = this.writeVisualNotes(brief);    return {      title: `${brief.concept} - ${brief.platform}`,      duration: brief.duration,      platform: brief.platform,      strategy: brief.strategy,      hook: { text: hook.text, duration: hook.duration, formula: hook.formula },      body: body.map((b, i) => ({ scene: i + 1, text: b.text, duration: b.duration, visual: b.visual })),      cta: { text: cta.text, duration: cta.duration, urgency: cta.urgency },      soundCue,      visualNotes,      platformNotes,      fullScript: this.assembleFullScript(hook, body, cta),      hashtags: this.generateHashtags(brief),      caption: this.writeCaption(brief),      voiceOver: this.writeVoiceOver(hook, body, cta),    };  }  writeHook(brief) {    const formula = this.selectHookFormula(brief.strategy);    const { concept, platform, lasVegasElements } = brief;    const hooks = {      'contractor-spotlight': {        tiktok: [          'This Summerlin contractor has a 4.9 star rating and ZERO competition in 89135...',          'The ONLY AC pro trusted by 287 Summerlin homeowners. Heres why...',          'I followed this contractor for a day in 115 degree Vegas heat. Mind = blown.',        ],        instagram: [          'Meet the contractor every Summerlin homeowner is talking about',          'The secret weapon behind Summerlins most beautiful homes',          'Why 287 neighbors in 89135 wont call anyone else',        ],      },      'new-homeowner-welcome': {        tiktok: [          'Just bought a home in Vegas? Heres what nobody tells you about summer...',          'POV: You just closed on your first Vegas home and its 110 degrees outside',          'New homeowner in 89135? Stop scrolling. This $100 gift is for YOU.',        ],        instagram: [          'Welcome to Vegas, new homeowner. Heres your survival guide',          'The 5 things every new Vegas homeowner needs (that nobody mentions)',          'Just moved to Summerlin? This $100 welcome gift is waiting for you',        ],      },      'emergency-service': {        tiktok: [          'RED ALERT. Vegas heat. Broken AC. 2am. Heres what to do...',          'Your AC died at 2am and its 115 degrees. Dont panic. Do THIS.',          'Emergency mode: activated. 3 AC pros in 89135 respond in 45 minutes.',        ],        instagram: [          'Emergency: AC down in Vegas heat. Help is 45 minutes away',          '2am. 115 degrees. Broken AC. Weve got you covered.',          'Vegas heat emergency? These contractors answer at 2am.',        ],      },      'before-after-transformation': {        tiktok: [          'This pool transformation in Summerlin cost less than a used car. Wait for it...',          'Before: cracked desert pool. After: resort vibes. 89135 transformation.',          'The most satisfying 15 seconds youll see today. Summerlin pool reveal.',        ],        instagram: [          'From cracked to paradise: This Summerlin pool makeover is everything',          'The pool transformation that broke Instagram in 89135',          'Before and after: Desert drab to resort fab in Summerlin',        ],      },      'vegas-heat-warning': {        tiktok: [          'Your AC is DYING and you dont even know it. Let me explain...',          'Vegas homeowners: Your AC has a 78% chance of failing this summer. Heres proof.',          'I asked 100 Vegas HVAC pros the same question. Their answer? Terrifying.',        ],        instagram: [          'The truth about Vegas summer heat and your AC unit',          'Is your AC ready for 115 degrees? Probably not. Heres why.',          'Vegas summer survival guide: Dont let your AC become a $8,500 mistake',        ],      },      'contractor-tip': {        tiktok: [          'Vegas homeowners: Do THIS to your AC before summer hits. Save $8,500.',          'This 30-second AC hack saved my neighbor $8,500. Pass it on.',          'Your AC filter is costing you $400/year. Heres the 5-second fix.',        ],        instagram: [          'The $8,500 AC mistake every Vegas homeowner makes',          'Pro tip: This 5-minute AC check prevents a $8,500 disaster',          'Vegas summer prep: The AC tip that saves thousands',        ],      },      'lead-gen-offer': {        tiktok: [          'FREE $100 gift card for AC service in 89135. No catch. First 50 only.',          'Were giving away $100 to Summerlin homeowners. Heres why...',          '$100 FREE for your next home project. Vegas homeowners only. Tap now.',        ],        instagram: [          'Summerlin homeowners: Your $100 gift is waiting',          'Free $100 for home services in 89135. Limited time.',          'Were giving $100 to the first 50 Summerlin homeowners. Claim yours.',        ],      },      'customer-testimonial': {        tiktok: [          'I almost got scammed by a Vegas contractor. Then I found GetOnlyPros...',          'Story time: How I found the ONLY honest contractor in Vegas.',          'This contractor saved me from a $15,000 disaster. Heres my story.',        ],        instagram: [          'Real talk: I found the best contractor in Vegas and Im sharing the secret',          'From nightmare to dream home: My Vegas contractor story',          'Why Ill never use another contractor again. My honest review.',        ],      },      'monsoon-prep': {        tiktok: [          'Monsoon season is HERE and your roof is NOT ready. Checklist time...',          'The Vegas monsoon is coming. Is your roof ready? Probably not.',          'Last Vegas monsoon caused $2.3M in damage. Heres how to protect your home.',        ],        instagram: [          'Monsoon prep checklist for Vegas homeowners',          'The storm is coming. Is your Vegas home ready?',          'Protect your home before the next Vegas monsoon hits',        ],      },      'territory-scarcity': {        tiktok: [          'Only 1 AC contractor spot left in 89135. 2,400 homes. 1 pro. Will it be you?',          'Summerlin homeowners: Theres only ONE AC pro for all of 89135 right now.',          'Contractors: 89135 is WIDE OPEN. One pro gets 2,400 homes. Claim it.',        ],        instagram: [          '89135 has 2,400 homes and only 1 AC contractor spot left',          'Exclusive territory alert: One contractor per zip code in Summerlin',          'The last AC spot in 89135. Lock it before your competitor does.',        ],      },    };    const platformHooks = hooks[concept]?.[platform] || hooks[concept]?.tiktok || ['Stop scrolling. This is for Vegas homeowners only.'];    const selectedHook = platformHooks[Math.floor(Math.random() * platformHooks.length)];    return {      text: selectedHook,      duration: 3,      formula: formula.name,    };  }  selectHookFormula(strategy) {    const strategyFormulas = {      urgency: ['FearFactor', 'DirectChallenge', 'TimePressure'],      aspiration: ['StoryOpen', 'SocialProofHook', 'CuriosityGap'],      education: ['CuriosityGap', 'PatternInterrupt', 'DirectChallenge'],      scarcity: ['TimePressure', 'Controversy', 'DirectChallenge'],      social_proof: ['SocialProofHook', 'StoryOpen', 'PatternInterrupt'],      humor: ['Controversy', 'PatternInterrupt', 'StoryOpen'],    };    const candidates = strategyFormulas[strategy] || ['PatternInterrupt'];    const formulaName = candidates[Math.floor(Math.random() * candidates.length)];    return this.hookFormulas.find(f => f.name === formulaName) || this.hookFormulas[0];  }  writeBody(brief) {    const { concept, strategy, keyMessage, lasVegasElements } = brief;    const bodies = {      'contractor-spotlight': [        { text: 'Meet David. Hes been fixing ACs in Summerlin for 15 years.', duration: 3, visual: 'contractor walking up to house, tools in hand' },        { text: '287 five-star reviews. Emergency response in 45 minutes. Licensed, bonded, insured.', duration: 4, visual: 'review stars appear, timer graphic, license badge' },        { text: 'And heres the kicker: Hes the ONLY AC pro we send to 89135.', duration: 3, visual: 'map zoom to 89135, exclusive badge' },      ],      'new-homeowner-welcome': [        { text: 'Welcome to Vegas! Your new home is amazing. But lets talk about what nobody tells you...', duration: 3, visual: 'beautiful home exterior, desert sunset' },        { text: 'That AC unit? Its been through 10 Vegas summers. Its tired.', duration: 3, visual: 'old AC unit, thermometer showing 115F' },        { text: 'Your water? Its basically liquid rock. Your pool? It needs weekly love.', duration: 3, visual: 'hard water stains, green pool, then clean pool' },        { text: 'Good news: We handpicked the top 5 pros in 89135. Plus a $100 welcome gift.', duration: 3, visual: 'gift card animation, contractor lineup' },      ],      'emergency-service': [        { text: '2am. 115 degrees. Your AC just died. Dont panic.', duration: 2, visual: 'dark house, broken AC, red alert' },        { text: 'We have 3 emergency contractors in 89135 who answer at 2am.', duration: 3, visual: 'contractor van driving at night, phone ringing' },        { text: '45 minutes. Thats the average response time. No after-hours fees.', duration: 3, visual: 'timer counting down, contractor arriving' },      ],      'before-after-transformation': [        { text: 'This Summerlin pool was cracked, faded, and basically unusable.', duration: 3, visual: 'cracked pool deck, dirty water' },        { text: 'Desert Green Landscaping transformed it into a resort-style oasis.', duration: 4, visual: 'wipe transition to beautiful pool, waterfall, lighting' },        { text: 'Cool deck, new plaster, LED lighting. Total cost? Less than a used car.', duration: 4, visual: 'price tag appears, family enjoying pool' },      ],      'vegas-heat-warning': [        { text: 'Vegas summer isnt just hot. Its 115 degrees for 45 straight days.', duration: 3, visual: 'thermometer rising, sun blazing' },        { text: 'If your AC is over 12 years old, it has a 78% failure rate this summer.', duration: 3, visual: 'old AC unit, warning sign, stat graphic' },        { text: 'Emergency replacement? $8,500. Preventive tune-up? $189.', duration: 3, visual: 'price comparison graphic, green vs red' },        { text: 'Free inspection + $100 credit. Link in bio. Book before it breaks.', duration: 3, visual: 'calendar, gift card, CTA button' },      ],      'contractor-tip': [        { text: 'Vegas homeowners, this 30-second trick prevents a $8,500 AC disaster.', duration: 3, visual: 'contractor holding filter, timer graphic' },        { text: 'Change your filter monthly. Clean your coils. Check your capacitor.', duration: 4, visual: 'quick demo shots, before/after filter' },        { text: 'Full checklist FREE at link in bio. Plus $100 service credit.', duration: 4, visual: 'checklist graphic, gift card, thumbs up' },      ],      'lead-gen-offer': [        { text: 'FREE $100 gift card for any home service in 89135.', duration: 2, visual: 'gift card animation, dollar signs' },        { text: 'No catch. No spam. Just the highest-rated pros in Summerlin.', duration: 3, visual: '5-star reviews, happy homeowners' },        { text: 'One contractor per zip. Exclusive. No shared leads.', duration: 3, visual: 'map with one pin, exclusive badge' },      ],      'customer-testimonial': [        { text: 'I hired a random contractor from Google. Big mistake.', duration: 2, visual: 'frustrated homeowner, bad work photos' },        { text: 'Half-finished job. Mess everywhere. $3,000 gone.', duration: 3, visual: 'unfinished work, invoice' },        { text: 'Then I found GetOnlyPros. One vetted pro. Showed up on time. Done in 2 days.', duration: 4, visual: 'professional contractor, beautiful finished work' },        { text: '5 stars. Under budget. Ill never use anyone else.', duration: 3, visual: '5 stars, happy homeowner, before/after' },      ],      'monsoon-prep': [        { text: 'Vegas monsoon season: 70mph winds. Flash floods. Hail.', duration: 2, visual: 'storm clouds, lightning, rain' },        { text: 'Last year, $2.3M in roof damage across Summerlin alone.', duration: 3, visual: 'damaged roofs, stat graphic' },        { text: 'Heres your 5-point checklist: Gutters, shingles, flashing, drains, trees.', duration: 4, visual: 'checklist appears, roofer inspecting' },        { text: 'Free inspection + $100 credit. Book before the storm hits.', duration: 3, visual: 'calendar, storm warning, CTA' },      ],      'territory-scarcity': [        { text: '89135 has 2,400 homes. Currently ONE AC contractor serving all of them.', duration: 3, visual: 'map with single pin, home counter' },        { text: 'That contractor is getting EVERY lead. Zero competition.', duration: 3, visual: 'lead counter rising, money graphic' },        { text: 'Summerlin, Henderson, Green Valley — spots are filling fast.', duration: 3, visual: 'map with red/green territories' },      ],    };    return bodies[concept] || [{ text: keyMessage, duration: 5, visual: 'professional footage' }];  }  writeCTA(brief) {    const { callToAction, platform, strategy } = brief;    const urgencyLevel = strategy === 'urgency' || strategy === 'scarcity' ? 'extreme' : strategy === 'social_proof' ? 'medium' : 'high';    const platformCTAs = {      tiktok: [        `Tap link in bio. ${callToAction}`,        `${callToAction}. Link in bio NOW.`,        `Dont wait. ${callToAction}`,      ],      instagram: [        `${callToAction}. Link in bio.`,        `${callToAction}. DM us for details.`,        `${callToAction}. Limited spots available.`,      ],      youtube: [        `${callToAction}. Subscribe for more Vegas home tips.`,        `Links in description. ${callToAction}`,        `Comment YES below and well send you the link.`,      ],      facebook: [        `${callToAction}. Share with a neighbor who needs this.`,        `${callToAction}. Tag a friend in the comments.`,        `Message us now. ${callToAction}`,      ],    };    const ctas = platformCTAs[platform] || [callToAction];    return {      text: ctas[Math.floor(Math.random() * ctas.length)],      duration: 2,      urgency: urgencyLevel,    };  }  writeSoundCue(brief) {    const { strategy, platform } = brief;    const cues = {      tiktok: {        urgency: 'Trending alarm sound + heartbeat bass drop at CTA',        aspiration: 'Upbeat pop trending audio with dreamy synth',        education: 'Clean, minimal beat. No lyrics to compete with voiceover',        scarcity: 'Ticking clock sound effect building to reveal',        social_proof: 'Warm acoustic guitar or piano, trustworthy feel',        humor: 'Trending meme sound, unexpected drop at punchline',      },      instagram: {        urgency: 'Dramatic orchestral sting, fast cuts synced to beat',        aspiration: 'Lofi or ambient, aspirational lifestyle vibe',        education: 'Subtle electronic, modern but not distracting',        scarcity: 'Building tension, triumphant resolution',        social_proof: 'Emotional piano, warm and authentic',        humor: 'Playful, bouncy, meme-friendly',      },    };    return cues[platform]?.[strategy] || 'Professional background music, upbeat tempo';  }  writeVisualNotes(brief) {    const { concept, platform, lasVegasElements, strategy } = brief;    const notes = {      'contractor-spotlight': 'Professional uniform, branded van, real tools in action, desert backdrop, golden hour lighting, 5-star review graphics floating',      'new-homeowner-welcome': 'Celebration confetti, key handoff moment, Vegas skyline, desert landscape, home exterior beauty shots, warm family moments',      'emergency-service': 'Dark to light transition, red alert graphics, fast van arrival, heroic contractor silhouette, cool air visual effect, relief on homeowner face',      'before-after-transformation': 'Smooth wipe transition, dramatic reveal moment, slow-mo water feature, golden hour after shots, price tag reveal, happy family reveal',      'vegas-heat-warning': 'Thermometer animation, sun visual effects, AC unit struggling (shake effect), dollar signs flying away, preventive checklist checkmarks, calendar flip',      'contractor-tip': 'DIY close-up shots, expert talking head, infographic pop-ups, before/after filter split, money counter animation, checklist graphic',      'lead-gen-offer': 'Gift card spin animation, confetti burst, countdown timer, scarcity counter ticking down, happy homeowner reactions, tap animation on link',      'customer-testimonial': 'Authentic lighting, real homeowner face, before photos (muted colors), after photos (vibrant), 5-star overlay animation, trust badge',      'monsoon-prep': 'Dark storm clouds building, lightning flash, rain hitting roof, checklist items checking off, roofer in safety gear, protective shield visual, calendar with storm date',      'territory-scarcity': 'Map with territories filling up (green to red), countdown animation, single pin standing alone, money falling, competitor van driving away, lock animation',    };    return {      primaryVisual: notes[concept] || 'Clean, professional footage with branded elements',      lasVegasMustInclude: lasVegasElements.slice(0, 3),      colorGrading: strategy === 'urgency' ? 'Warm oranges, reds, high contrast' : strategy === 'aspiration' ? 'Golden, warm, slightly desaturated' : 'Clean, bright, modern',      textStyle: platform === 'tiktok' ? 'Bold, large, emoji-heavy, centered' : 'Elegant, refined, subtle shadows',      transitionStyle: platform === 'tiktok' ? 'Fast cuts, jump cuts, trending transitions' : 'Smooth, cinematic, professional',    };  }  writePlatformNotes(platform) {    const notes = {      tiktok: {        optimalLength: '9-15 seconds',        textOnScreen: 'Must have text on every frame. 80% watch without sound.',        pacing: 'Cut every 1-2 seconds. Never hold a shot longer than 3 seconds.',        hookPlacement: 'First 1-3 seconds determine everything. Hook must be immediate.',        soundStrategy: 'Use trending audio or original sound with strong beat.',        captionLength: 'Keep under 100 characters for maximum readability.',      },      instagram: {        optimalLength: '15-30 seconds',        textOnScreen: 'Text optional but recommended for key stats.',        pacing: 'Slightly slower than TikTok. 2-3 seconds per shot acceptable.',        hookPlacement: 'First 3 seconds. Visual quality matters more than speed.',        soundStrategy: 'Original sound or trending Reels audio. Music choice signals quality.',        captionLength: 'Up to 125 characters visible without expand.',      },      youtube: {        optimalLength: '30-60 seconds for Shorts',        textOnScreen: 'Minimal text. Let the content breathe.',        pacing: 'Moderate. Educational content can be slower.',        hookPlacement: 'First 5 seconds. Promise value upfront.',        soundStrategy: 'Clear voiceover with subtle background music.',        captionLength: 'Detailed descriptions for SEO. Include keywords.',      },      facebook: {        optimalLength: '15-30 seconds',        textOnScreen: 'Text overlays help with sound-off viewing.',        pacing: 'Moderate. Community-focused, shareable moments.',        hookPlacement: 'First 3-5 seconds. Emotion or controversy drives shares.',        soundStrategy: 'Original sound or popular song. Shareability over trendiness.',        captionLength: 'Longer captions acceptable. Tell a story.',      },    };    return notes[platform] || notes.tiktok;  }  writeVoiceOver(hook, body, cta) {    return {      tone: 'conversational, energetic, authentic',      pace: 'Fast but clear. 150 words per minute max.',      emotion: 'Genuine excitement, urgency when needed, warmth throughout',      fullScript: [hook.text, ...body.map(b => b.text), cta.text].join(' ').replace(/ +/g, ' ').trim(),      wordCount: [hook.text, ...body.map(b => b.text), cta.text].join(' ').split(/ +/).length,    };  }  writeCaption(brief) {    const { concept, platform, strategy } = brief;    const captions = {      'contractor-spotlight': 'The ONLY [service] pro trusted by 287 neighbors in [neighborhood]. Exclusive on GetOnlyPros. Your zip. Your pro. Zero competition. Link in bio! #GetOnlyPros #VegasLocal #Summerlin',      'new-homeowner-welcome': 'Just bought in [neighborhood]? Heres $100 to welcome you home. Vetted pros only. No shared leads. Welcome to Vegas! #NewHomeowner #VegasLife #Summerlin',      'emergency-service': '2am. 115 degrees. Broken AC. Weve got you. 45 min response in [zipCode]. #EmergencyService #VegasHeat #ACRepair',      'before-after-transformation': 'This transformation tho [neighborhood] [service] game is STRONG. #BeforeAfter #HomeTransformation #VegasHomes',      'vegas-heat-warning': 'Your AC is dying and you dont know it yet. Free inspection + $100 credit. Link in bio. #VegasSummer #ACMaintenance #StayCool',      'contractor-tip': 'This 5-minute check saves $8,500. Full checklist FREE at link in bio! #ProTip #HomeMaintenance #VegasLocal',      'lead-gen-offer': 'FREE $100 gift card for [service] in [zipCode]. No catch. First 50 only. Tap NOW! #FreeGift #LimitedTime #SpecialOffer',      'customer-testimonial': 'Real talk from a real Vegas homeowner. This is why we do what we do. #RealReview #HappyCustomer #Trust',      'monsoon-prep': 'Monsoon season is HERE [neighborhood]. Is your roof ready? Free inspection + $100 credit. #MonsoonReady #StormPrep #RoofCheck',      'territory-scarcity': 'Only 1 [service] spot left in [zipCode]. 2,400 homes. 1 contractor gets ALL leads. #Exclusive #LockYourZip #BeTheFirst',    };    return captions[concept] || 'GetOnlyPros - The best way to find vetted home service contractors in Las Vegas. #VegasLocal #HomeServices';  }  generateHashtags(brief) {    const base = ['#GetOnlyPros', '#LasVegas', '#VegasLocal'];    const platformTags = {      tiktok: ['#FYP', '#ForYouPage', '#VegasTikTok', '#HomeTok', '#Viral'],      instagram: ['#Reels', '#VegasLife', '#HomeImprovement', '#LasVegasHomes'],      youtube: ['#Shorts', '#VegasShorts'],      facebook: ['#VegasCommunity', '#LocalBusiness'],    };    const nicheTags = {      'contractor-spotlight': ['#ContractorSpotlight', '#TopRated', '#VettedPro'],      'new-homeowner-welcome': ['#NewHomeowner', '#WelcomeHome', '#FirstHome'],      'emergency-service': ['#EmergencyService', '#VegasHeat', '#ACRepair'],      'before-after-transformation': ['#BeforeAfter', '#Transformation', '#RenoReveal'],      'vegas-heat-warning': ['#VegasSummer', '#ACMaintenance', '#StayCool'],      'contractor-tip': ['#ProTip', '#DIY', '#HomeMaintenance'],      'lead-gen-offer': ['#FreeGift', '#LimitedTime', '#SpecialOffer'],      'customer-testimonial': ['#RealReview', '#HappyCustomer', '#Trust'],      'monsoon-prep': ['#MonsoonReady', '#StormPrep', '#RoofCheck'],      'territory-scarcity': ['#Exclusive', '#LockYourZip', '#BeTheFirst'],    };    const locationTags = ['#Summerlin', '#Henderson', '#GreenValley', '#89135', '#89052'];    return [...base, ...(platformTags[brief.platform] || []), ...(nicheTags[brief.concept] || []), ...locationTags].join(' ');  }  assembleFullScript(hook, body, cta) {    return [hook.text, ...body.map(b => b.text), cta.text].join(' ').replace(/ +/g, ' ').trim();  }  countWords(script) {    const text = typeof script === 'string' ? script : script.voiceOver?.fullScript || '';    return text.split(/ +/).length;  }}module.exports = ScriptWriter;
+const BaseAgent = require('./BaseAgent');
+
+/**
+ * ScriptWriter Agent
+ * The wordsmith. Writes hooks that stop the scroll, bodies that deliver value,
+ * and CTAs that convert. Masters TikTok/Instagram voice.
+ */
+class ScriptWriter extends BaseAgent {
+  constructor() {
+    super('ScriptWriter', 'script_writer');
+    this.hookFormulas = [
+      { name: 'PatternInterrupt', template: 'Wait... {surprising_fact} in {location}?', effectiveness: 0.92 },
+      { name: 'FearFactor', template: 'Your {thing} is {bad_thing} and you do not even know it...', effectiveness: 0.88 },
+      { name: 'SocialProofHook', template: '{number} {location} homeowners already {action} this {timeframe}', effectiveness: 0.85 },
+      { name: 'CuriosityGap', template: 'I asked {number} {professionals} the same question. The #1 answer shocked me.', effectiveness: 0.90 },
+      { name: 'DirectChallenge', template: 'If you are a {target} in {location}, stop scrolling.', effectiveness: 0.87 },
+      { name: 'StoryOpen', template: '{time}. {temperature}. My {thing} just {broke}. Then THIS happened...', effectiveness: 0.91 },
+      { name: 'Controversy', template: 'Unpopular opinion: {controversial_statement} in {location}', effectiveness: 0.83 },
+      { name: 'TimePressure', template: 'Only {number} {thing} left in {location}. Here is why...', effectiveness: 0.89 },
+    ];
+    this.voiceGuides = {
+      tiktok: 'Gen Z energy. Fast-paced. Emoji-heavy. No corporate speak. Use "you" constantly. Short sentences. Trending audio references.',
+      instagram: 'Aspirational but relatable. Polished but authentic. Use storytelling. Emotional hooks. Visual-first descriptions.',
+      youtube: 'Educational but entertaining. Clear structure. Value-packed. Authority voice with personality.',
+      facebook: 'Community-focused. Local pride. Conversational. Slightly longer form. Trust-building tone.',
+    };
+  }
+
+  async execute(brief) {
+    console.log(`[${this.name}] Writing script for ${brief?.concept} on ${brief?.platform}...`);
+    if (!brief) {
+      return { success: false, message: 'Brief required for script writing' };
+    }
+
+    const hook = this.writeHook(brief);
+    const body = this.writeBody(brief);
+    const cta = this.writeCTA(brief);
+    const voiceover = this.writeVoiceOver(hook, body, cta, brief);
+    const captions = this.writeCaptions(hook, body, cta, brief);
+    const hashtags = this.generateHashtags(brief);
+
+    return {
+      success: true,
+      script: {
+        concept: brief.concept,
+        platform: brief.platform,
+        strategy: brief.strategy,
+        duration: brief.duration,
+        hook,
+        body,
+        cta,
+        voiceover,
+        captions,
+        hashtags,
+        tone: this.voiceGuides[brief.platform] || this.voiceGuides.tiktok,
+        keyMessage: brief.keyMessage,
+        lasVegasElements: brief.lasVegasElements,
+      },
+      hookFormula: hook.formula,
+    };
+  }
+
+  writeHook(brief) {
+    const { concept, platform, strategy, hooks } = brief;
+    const formula = this.selectHookFormula(strategy, platform);
+    const hookText = this.fillHookTemplate(formula, brief);
+
+    return {
+      text: hookText,
+      formula: formula.name,
+      duration: 3, // seconds
+      visualDirection: this.getHookVisual(strategy),
+      audioDirection: this.getHookAudio(strategy),
+      effectiveness: formula.effectiveness,
+    };
+  }
+
+  selectHookFormula(strategy, platform) {
+    // Match strategy to best formula
+    const strategyMap = {
+      urgency: 'FearFactor',
+      aspiration: 'StoryOpen',
+      education: 'CuriosityGap',
+      scarcity: 'TimePressure',
+      social_proof: 'SocialProofHook',
+      humor: 'Controversy',
+    };
+    const formulaName = strategyMap[strategy] || 'PatternInterrupt';
+    return this.hookFormulas.find(f => f.name === formulaName) || this.hookFormulas[0];
+  }
+
+  fillHookTemplate(formula, brief) {
+    const { concept, platform, keyMessage } = brief;
+    let text = formula.template;
+
+    // Fill based on concept
+    const fills = {
+      'emergency-service': {
+        surprising_fact: 'your AC is about to fail',
+        location: 'Vegas',
+        thing: 'AC',
+        bad_thing: 'about to die',
+        number: '847',
+        action: 'used',
+        timeframe: 'month',
+        professionals: 'HVAC pros',
+        target: 'homeowner',
+        temperature: '110 degrees',
+        broke: 'died',
+        controversial_statement: 'you should turn OFF your AC at night',
+      },
+      'new-homeowner-welcome': {
+        surprising_fact: 'new homeowners lose $5,000',
+        location: 'Las Vegas',
+        thing: 'house',
+        bad_thing: 'bleeding money',
+        number: '2,400',
+        action: 'saved',
+        timeframe: 'year',
+        professionals: 'contractors',
+        target: 'new homeowner',
+        temperature: 'Moving day',
+        broke: 'cost more than expected',
+        controversial_statement: 'your home inspection was worthless',
+      },
+      'territory-scarcity': {
+        surprising_fact: 'your competitor locked 3 zip codes',
+        location: 'Summerlin',
+        thing: 'territory',
+        bad_thing: 'gone',
+        number: '1',
+        action: 'claimed',
+        timeframe: 'week',
+        professionals: 'contractors',
+        target: 'contractor',
+        temperature: 'Today',
+        broke: 'got taken',
+        controversial_statement: 'leads are not worth what you think',
+      },
+    };
+
+    const fill = fills[concept] || fills['emergency-service'];
+    text = text.replace('{surprising_fact}', fill.surprising_fact);
+    text = text.replace('{location}', fill.location);
+    text = text.replace('{thing}', fill.thing);
+    text = text.replace('{bad_thing}', fill.bad_thing);
+    text = text.replace('{number}', fill.number);
+    text = text.replace('{action}', fill.action);
+    text = text.replace('{timeframe}', fill.timeframe);
+    text = text.replace('{professionals}', fill.professionals);
+    text = text.replace('{target}', fill.target);
+    text = text.replace('{temperature}', fill.temperature);
+    text = text.replace('{broke}', fill.broke);
+    text = text.replace('{controversial_statement}', fill.controversial_statement);
+
+    return text;
+  }
+
+  getHookVisual(strategy) {
+    const visuals = {
+      urgency: 'Extreme close-up of broken AC unit with sweat dripping. Red/orange color grade. Shaky handheld camera.',
+      aspiration: 'Golden hour shot of beautiful Las Vegas home with palm trees. Warm, inviting. Drone rising shot.',
+      education: 'Split screen showing problem vs solution. Clean, well-lit. Professional but approachable.',
+      scarcity: 'Bold text overlay "ONLY 1 LEFT" with countdown timer. Flashing red border. Tight crop.',
+      social_proof: 'Real homeowner face, authentic emotion. Slightly imperfect lighting = more trustworthy.',
+      humor: 'Funny facial expression, unexpected prop. Bright colors. Fast zoom in on reaction.',
+    };
+    return visuals[strategy] || visuals.social_proof;
+  }
+
+  getHookAudio(strategy) {
+    const audios = {
+      urgency: 'Heartbeat sound effect building tension. Sudden silence at 2 seconds. Then alarm beep.',
+      aspiration: 'Upbeat, inspiring music. Soft intro building to emotional peak.',
+      education: 'Clean, minimal background. Focus on voiceover clarity. Subtle whoosh transitions.',
+      scarcity: 'Ticking clock sound effect. Tension-building strings. "Ding" at reveal.',
+      social_proof: 'Warm, authentic ambient sound. Natural room tone. Slight emotional music bed.',
+      humor: 'Comedic sound effect (boing, record scratch). Upbeat quirky music.',
+    };
+    return audios[strategy] || audios.social_proof;
+  }
+
+  writeBody(brief) {
+    const { concept, platform, strategy, keyMessage } = brief;
+    const scenes = [];
+
+    // Scene templates based on concept
+    const sceneTemplates = {
+      'emergency-service': [
+        { text: 'It is 2am. 110 degrees outside. Your AC just died.', duration: 3, visual: 'Thermometer hitting 110F. Sweaty homeowner. Dark room.' },
+        { text: 'Most people panic and call the first Google result. Big mistake.', duration: 3, visual: 'Phone screen showing random search results. Red X over some.' },
+        { text: 'That is how you get a $500 quote that turns into $5,000.', duration: 3, visual: 'Invoice graphic with number climbing. Shocked face.' },
+        { text: 'GetOnlyPros vets every contractor. 847 reviews. Zero scams.', duration: 4, visual: '5-star reviews scrolling. Checkmark badges. Trusted pro arriving.' },
+      ],
+      'new-homeowner-welcome': [
+        { text: 'Welcome to Vegas! New house, new neighborhood, new everything.', duration: 3, visual: 'Moving truck. New house exterior. Happy family.' },
+        { text: 'But here is what nobody tells you about your first 90 days...', duration: 3, visual: 'Homeowner looking confused. Question marks appearing.' },
+        { text: 'You are about to need: AC check, roof inspection, plumber, electrician.', duration: 4, visual: 'Checklist appearing with checkmarks. Fast cuts between services.' },
+        { text: 'We have already vetted the best in your zip code. Plus, here is $100 on us.', duration: 4, visual: 'Gift card graphic. Zip code map highlighting. Pro team photo.' },
+      ],
+      'territory-scarcity': [
+        { text: 'We only work with ONE contractor per zip code in Las Vegas.', duration: 3, visual: 'Map of Vegas with zip codes. One glowing per area.' },
+        { text: 'Why? Because when a homeowner calls, they want THE expert. Not a random list.', duration: 4, visual: 'Homeowner smiling with one contractor. Red X over long lists.' },
+        { text: 'Your competitor in 89135 just locked their 3rd territory this month.', duration: 3, visual: 'Calendar flipping. Territory map with competitor logos.' },
+        { text: 'Lock yours before they are all gone. DM us CLAIM + your zip.', duration: 4, visual: 'Phone DM screen. Lock icon. Urgent red countdown.' },
+      ],
+      'vegas-heat-warning': [
+        { text: 'Vegas summer: your AC works 3x harder than any other city.', duration: 3, visual: 'Desert sun. AC unit working hard. Overheat graphic.' },
+        { text: 'Here is what happens if you skip the pre-summer checkup...', duration: 3, visual: 'Thermometer climbing. Warning signs. Red alert zones.' },
+        { text: 'Compressor failure: $3,500. Refrigerant leak: $800. Total replacement: $8,500.', duration: 4, visual: 'Price tags appearing. Calculator. Shocked homeowner.' },
+        { text: 'Free pre-summer check at link in bio. Takes 20 minutes. Saves you thousands.', duration: 4, visual: 'Contractor smiling with clipboard. Checkmark. Savings graphic.' },
+      ],
+      'contractor-spotlight': [
+        { text: 'Meet David. The ONLY AC pro we send to Summerlin 89135.', duration: 3, visual: 'David in uniform. Branded van. Neighborhood shot.' },
+        { text: '847 five-star reviews. 12 years in Vegas. Zero complaints.', duration: 3, visual: 'Reviews scrolling. Experience badge. Clean record.' },
+        { text: 'Last Tuesday at 2am, he saved a family from 110 degree heat. Here is what they said...', duration: 4, visual: 'Night service footage. Testimonial quote graphic.' },
+        { text: 'Book David directly through GetOnlyPros. Link in bio.', duration: 3, visual: 'Booking screen. David waving. GetOnlyPros logo.' },
+      ],
+      'customer-testimonial': [
+        { text: 'Sarah, Summerlin. 2am. AC died during the heat wave.', duration: 3, visual: 'Sarah in her home. Clock showing 2am. Sweating.' },
+        { text: 'She called GetOnlyPros. David arrived in 23 minutes.', duration: 3, visual: 'Phone call. Timer graphic. Van arriving.' },
+        { text: 'Fixed in under an hour. Total cost: $180. She left this review...', duration: 4, visual: 'Repair footage. Price tag. 5-star review appearing.' },
+        { text: 'Real Vegas homeowners. Real emergencies. Real results. Link in bio.', duration: 3, visual: 'Multiple happy homeowners. GetOnlyPros logo. Trust badges.' },
+      ],
+    };
+
+    const templateScenes = sceneTemplates[concept] || sceneTemplates['emergency-service'];
+    templateScenes.forEach((scene, i) => {
+      scenes.push({
+        sceneNumber: i + 1,
+        text: scene.text,
+        duration: scene.duration,
+        visualDirection: scene.visual,
+        audioDirection: i === 0 ? 'Music fades in' : i === templateScenes.length - 1 ? 'Music peaks then fades' : 'Music bed continues',
+      });
+    });
+
+    return {
+      scenes,
+      totalDuration: scenes.reduce((sum, s) => sum + s.duration, 0),
+      sceneCount: scenes.length,
+    };
+  }
+
+  writeCTA(brief) {
+    const { concept, platform, strategy } = brief;
+    const ctas = {
+      'emergency-service': {
+        text: 'Save this post. When your AC dies at 2am, you will know exactly who to call. Link in bio.',
+        visual: 'Phone screen with GetOnlyPros app. Big "SAVE" button. Flashing arrow.',
+        duration: 4,
+      },
+      'new-homeowner-welcome': {
+        text: 'Comment WELCOME and we will DM you your $100 gift card + the vetted contractor list for your zip code.',
+        visual: 'Gift card graphic. Comment bubble animation. DM icon. Zip code map.',
+        duration: 5,
+      },
+      'territory-scarcity': {
+        text: 'Contractors: DM us CLAIM + your zip code to lock your exclusive territory today.',
+        visual: 'Phone DM screen. Lock icon. Map with zip codes. Urgent red glow.',
+        duration: 4,
+      },
+      'vegas-heat-warning': {
+        text: 'Book your FREE pre-summer AC check at link in bio. Zero obligation. Zero sales pressure.',
+        visual: 'Calendar booking interface. "FREE" badge. Contractor thumbs up.',
+        duration: 4,
+      },
+      'contractor-spotlight': {
+        text: 'Book David directly at link in bio. Summerlin 89135. The only pro you will ever need.',
+        visual: 'David smiling. Booking button. 5-star rating. Location pin.',
+        duration: 4,
+      },
+      'customer-testimonial': {
+        text: 'Read 847 more reviews at link in bio. Meet the only vetted pros in your Las Vegas zip code.',
+        visual: 'Reviews scrolling. GetOnlyPros logo. Map of Vegas with pro pins.',
+        duration: 4,
+      },
+    };
+
+    return ctas[concept] || ctas['emergency-service'];
+  }
+
+  writeVoiceOver(hook, body, cta, brief) {
+    const fullScript = [hook.text, ...body.scenes.map(s => s.text), cta.text].join(' ');
+    const wordCount = fullScript.split(' ').length;
+    const estimatedDuration = Math.ceil(wordCount / 150 * 60); // 150 words per minute
+
+    return {
+      fullScript,
+      wordCount,
+      estimatedDuration,
+      pace: 'conversational', // 150 wpm
+      tone: this.voiceGuides[brief.platform] || this.voiceGuides.tiktok,
+      notes: 'Speak like you are talking to a friend. Pause after hook. Emphasize numbers and urgency words.',
+    };
+  }
+
+  writeCaptions(hook, body, cta, brief) {
+    const { platform } = brief;
+    const allText = [hook.text, ...body.scenes.map(s => s.text), cta.text];
+
+    const captions = allText.map((text, i) => ({
+      index: i,
+      text,
+      style: this.getCaptionStyle(platform),
+      displayDuration: i === 0 ? 3 : i === allText.length - 1 ? 4 : 3,
+    }));
+
+    return {
+      captions,
+      totalCaptions: captions.length,
+      style: this.getCaptionStyle(platform),
+      accessibilityNote: 'Always include captions - 80% of social video is watched muted',
+    };
+  }
+
+  getCaptionStyle(platform) {
+    const styles = {
+      tiktok: {
+        font: 'Bold sans-serif (Montserrat/Impact)',
+        color: 'White with black outline',
+        position: 'Center screen',
+        animation: 'Pop in with slight bounce',
+        size: 'Large - readable on mobile',
+      },
+      instagram: {
+        font: 'Modern sans-serif (Helvetica Neue)',
+        color: 'White with subtle shadow',
+        position: 'Lower third',
+        animation: 'Smooth fade in',
+        size: 'Medium - elegant',
+      },
+      youtube: {
+        font: 'Clean sans-serif (Roboto)',
+        color: 'White with dark background bar',
+        position: 'Bottom center',
+        animation: 'Slide up',
+        size: 'Medium - professional',
+      },
+      facebook: {
+        font: 'System sans-serif',
+        color: 'White with black outline',
+        position: 'Center',
+        animation: 'Fade in',
+        size: 'Large - readable',
+      },
+    };
+    return styles[platform] || styles.tiktok;
+  }
+
+  generateHashtags(brief) {
+    const { platform, concept } = brief;
+    const baseHashtags = ['#GetOnlyPros', '#LasVegas', '#VegasLocal'];
+    const conceptTags = {
+      'emergency-service': ['#ACRepair', '#VegasHeat', '#EmergencyService', '#Summerlin', '#Henderson'],
+      'new-homeowner-welcome': ['#NewHomeowner', '#WelcomeHome', '#VegasRealEstate', '#FirstHome', '#MovingToVegas'],
+      'territory-scarcity': ['#ContractorLife', '#VegasContractor', '#Exclusive', '#LockYourZip', '#HVAC'],
+      'vegas-heat-warning': ['#VegasSummer', '#ACMaintenance', '#StayCool', '#DesertLife', '#SummerPrep'],
+      'contractor-spotlight': ['#ContractorSpotlight', '#VettedPro', '#TopRated', '#LocalExpert', '#TrustedPro'],
+      'customer-testimonial': ['#RealReview', '#HappyCustomer', '#VerifiedPro', '#FiveStars', '#VegasHomes'],
+    };
+    const platformTags = {
+      tiktok: ['#FYP', '#ForYou', '#Viral', '#HomeTok'],
+      instagram: ['#Reels', '#InstaHome', '#HomeImprovement', '#VegasLife'],
+      youtube: ['#Shorts', '#HomeTips', '#YouTubeShorts'],
+      facebook: ['#VegasCommunity', '#ShopLocal'],
+    };
+
+    const maxTags = { tiktok: 4, instagram: 15, youtube: 8, facebook: 5 }[platform] || 8;
+    const allTags = [...baseHashtags, ...(conceptTags[concept] || []), ...(platformTags[platform] || [])];
+    return allTags.slice(0, maxTags);
+  }
+}
+
+module.exports = ScriptWriter;
