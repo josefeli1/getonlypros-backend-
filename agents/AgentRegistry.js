@@ -32,6 +32,15 @@ const AGENT_DEFINITIONS = [
         defaultEnabled: true,
     },
     {
+        slug: 'social-media-monitor',
+        name: 'Social Media Monitor',
+        description: 'Monitors Nextdoor, Facebook, Reddit, Twitter for life events and auto-sends personalized offers with gift cards.',
+        category: 'monitoring',
+        classRef: index_1.SocialMediaMonitorAgent,
+        defaultSchedule: '*/20 * * * *',
+        defaultEnabled: true,
+    },
+    {
         slug: 'gift-card',
         name: 'Gift Card Engine',
         description: 'Manages gift card generation and distribution for lead referrals and completions.',

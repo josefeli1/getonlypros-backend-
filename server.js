@@ -32,6 +32,8 @@ const social_proof_1 = __importDefault(require("./routes/social-proof"));
 const groups_1 = __importDefault(require("./routes/groups"));
 const predict_1 = __importDefault(require("./routes/predict"));
 const storm_1 = __importDefault(require("./routes/storm"));
+const social_1 = __importDefault(require("./routes/social"));
+const outreach_1 = __importDefault(require("./routes/outreach"));
 const app = (0, express_1.default)();
 exports.app = app;
 const PORT = process.env.PORT || 5000;
@@ -96,6 +98,8 @@ app.use('/api/social-proof', social_proof_1.default);
 app.use('/api/groups', groups_1.default);
 app.use('/api/predict', predict_1.default);
 app.use('/api/storm', storm_1.default);
+app.use('/api/social', social_1.default);
+app.use('/api/outreach', outreach_1.default);
 app.use((_req, res) => {
     res.status(404).json({
         success: false,
