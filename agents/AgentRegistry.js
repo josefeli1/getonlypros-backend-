@@ -310,6 +310,15 @@ const AGENT_DEFINITIONS = [
         defaultSchedule: '*/15 * * * *',
         defaultEnabled: true,
     },
+    {
+        slug: 'call-answering',
+        name: 'AI Call Answering Agent',
+        description: '24/7 human-sounding phone receptionist. Answers calls with natural conversation, qualifies leads, books appointments, handles emergencies, and escalates to contractors when needed. Never misses a lead.',
+        category: 'calls',
+        classRef: index_1.CallAnsweringAgent,
+        defaultSchedule: '*/5 * * * *',
+        defaultEnabled: true,
+    },
 ];
 exports.AGENT_DEFINITIONS = AGENT_DEFINITIONS;
 class AgentRegistry {
