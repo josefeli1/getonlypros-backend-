@@ -229,6 +229,42 @@ const AGENT_DEFINITIONS = [
         defaultSchedule: '0 */4 * * *',
         defaultEnabled: true,
     },
+    {
+        slug: 'scheduler',
+        name: 'Scheduler Agent',
+        description: 'AI-powered scheduling and dispatch automation. Optimizes routes, predicts no-shows, suggests buffers, and fills gaps.',
+        category: 'toolbox',
+        classRef: index_1.SchedulerAgent,
+        defaultSchedule: '0 20 * * *',
+        defaultEnabled: true,
+    },
+    {
+        slug: 'estimator',
+        name: 'Estimator Agent',
+        description: 'AI-powered estimating engine. Generates accurate quotes based on service category, location, property details, and historical data.',
+        category: 'toolbox',
+        classRef: index_1.EstimatorAgent,
+        defaultSchedule: '0 */2 * * *',
+        defaultEnabled: true,
+    },
+    {
+        slug: 'invoice-agent',
+        name: 'Invoice Agent',
+        description: 'AI-powered invoice automation. Auto-generates invoices from completed jobs, sends payment reminders, predicts payment delays, and suggests early-pay discounts.',
+        category: 'toolbox',
+        classRef: index_1.InvoiceAgent,
+        defaultSchedule: '0 9,17 * * *',
+        defaultEnabled: true,
+    },
+    {
+        slug: 'crew-manager',
+        name: 'Crew Manager',
+        description: 'AI-powered crew management. Auto-assigns jobs to crew based on skills, location, and availability. Tracks performance, predicts overtime, and validates timesheets with AI anomaly detection.',
+        category: 'toolbox',
+        classRef: index_1.CrewManager,
+        defaultSchedule: '0 7,15 * * *',
+        defaultEnabled: true,
+    },
 ];
 exports.AGENT_DEFINITIONS = AGENT_DEFINITIONS;
 class AgentRegistry {

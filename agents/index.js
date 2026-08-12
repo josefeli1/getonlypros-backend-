@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.VideoProductionPipeline = exports.AnalyticsReviewer = exports.SocialMediaManager = exports.VideoEditor = exports.VideoProducer = exports.VisualDirector = exports.ScriptWriter = exports.CreativeDirector = exports.SocialMediaMonitorAgent = exports.ChurnRecoveryAgent = exports.GiftCardEngine = exports.MarketAnalysisAgent = exports.PricingIntelligenceAgent = exports.BuildingPermitAgent = exports.CompetitorReviewMiner = exports.SEOContentAgent = exports.FacebookAdsAgent = exports.GoogleAdsAgent = exports.WarrantyExpirationAgent = exports.NewMoverAgent = exports.SocialSignalMiner = exports.WeatherTriggerAgent = exports.SMSAlertAgent = exports.EmailSurveyAgent = exports.BaseAgent = void 0;
+exports.CrewManager = exports.InvoiceAgent = exports.EstimatorAgent = exports.SchedulerAgent = exports.VideoProductionPipeline = exports.AnalyticsReviewer = exports.SocialMediaManager = exports.VideoEditor = exports.VideoProducer = exports.VisualDirector = exports.ScriptWriter = exports.CreativeDirector = exports.SocialMediaMonitorAgent = exports.ChurnRecoveryAgent = exports.GiftCardEngine = exports.MarketAnalysisAgent = exports.PricingIntelligenceAgent = exports.BuildingPermitAgent = exports.CompetitorReviewMiner = exports.SEOContentAgent = exports.FacebookAdsAgent = exports.GoogleAdsAgent = exports.WarrantyExpirationAgent = exports.NewMoverAgent = exports.SocialSignalMiner = exports.WeatherTriggerAgent = exports.SMSAlertAgent = exports.EmailSurveyAgent = exports.BaseAgent = void 0;
 var BaseAgent_1 = require("./BaseAgent");
 Object.defineProperty(exports, "BaseAgent", { enumerable: true, get: function () { return BaseAgent_1.BaseAgent; } });
 var EmailSurveyAgent_1 = require("./EmailSurveyAgent");
@@ -49,6 +49,14 @@ var SocialMediaManager_1 = require("./SocialMediaManager");
 Object.defineProperty(exports, "SocialMediaManager", { enumerable: true, get: function () { return SocialMediaManager_1.SocialMediaManager; } });
 var AnalyticsReviewer_1 = require("./AnalyticsReviewer");
 Object.defineProperty(exports, "AnalyticsReviewer", { enumerable: true, get: function () { return AnalyticsReviewer_1.AnalyticsReviewer; } });
+var SchedulerAgent_1 = require("./SchedulerAgent");
+Object.defineProperty(exports, "SchedulerAgent", { enumerable: true, get: function () { return SchedulerAgent_1.SchedulerAgent; } });
+var EstimatorAgent_1 = require("./EstimatorAgent");
+Object.defineProperty(exports, "EstimatorAgent", { enumerable: true, get: function () { return EstimatorAgent_1.EstimatorAgent; } });
+var InvoiceAgent_1 = require("./InvoiceAgent");
+Object.defineProperty(exports, "InvoiceAgent", { enumerable: true, get: function () { return InvoiceAgent_1.InvoiceAgent; } });
+var CrewManager_1 = require("./CrewManager");
+Object.defineProperty(exports, "CrewManager", { enumerable: true, get: function () { return CrewManager_1.CrewManager; } });
 var VideoProductionPipeline_1 = require("./VideoProductionPipeline");
 Object.defineProperty(exports, "VideoProductionPipeline", { enumerable: true, get: function () { return VideoProductionPipeline_1.VideoProductionPipeline; } });
 //# sourceMappingURL=index.js.map
