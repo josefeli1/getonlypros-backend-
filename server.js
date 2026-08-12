@@ -37,6 +37,7 @@ const outreach_1 = __importDefault(require("./routes/outreach"));
 const video_studio_1 = __importDefault(require("./routes/video-studio"));
 const video_pipeline_1 = __importDefault(require("./routes/video-pipeline"));
 const toolbox_1 = __importDefault(require("./routes/toolbox"));
+const sticky_1 = __importDefault(require("./routes/sticky"));
 const app = (0, express_1.default)();
 exports.app = app;
 const PORT = process.env.PORT || 5000;
@@ -106,6 +107,7 @@ app.use('/api/outreach', outreach_1.default);
 app.use('/api/video-studio', video_studio_1.default);
 app.use('/api/video-pipeline', video_pipeline_1.default);
 app.use('/api/toolbox', toolbox_1.default);
+app.use('/api/sticky', sticky_1.default);
 app.use((_req, res) => {
     res.status(404).json({
         success: false,

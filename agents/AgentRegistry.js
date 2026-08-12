@@ -265,6 +265,42 @@ const AGENT_DEFINITIONS = [
         defaultSchedule: '0 7,15 * * *',
         defaultEnabled: true,
     },
+    {
+        slug: 'memory-bank',
+        name: 'Memory Bank Agent',
+        description: 'Builds irreplaceable customer intelligence. Processes every interaction, detects life events, tracks equipment, calculates churn risk, and grows data gravity. The longer a contractor stays, the smarter this agent becomes.',
+        category: 'sticky',
+        classRef: index_1.MemoryBankAgent,
+        defaultSchedule: '0 */6 * * *',
+        defaultEnabled: true,
+    },
+    {
+        slug: 'reputation',
+        name: 'Reputation Agent',
+        description: 'Compounding social proof engine. Auto-requests reviews at perfect moments, builds before/after case studies, tracks review impact, and grows irreplaceable reputation capital across all platforms.',
+        category: 'sticky',
+        classRef: index_1.ReputationAgent,
+        defaultSchedule: '0 10,16 * * *',
+        defaultEnabled: true,
+    },
+    {
+        slug: 'territory-intel',
+        name: 'Territory Intelligence Agent',
+        description: 'Turns zip codes into fortresses. Analyzes every job to build neighborhood intelligence, pricing curves, seasonal patterns, HOA databases, and competitor tracking. The longer you own a zip, the smarter you become.',
+        category: 'sticky',
+        classRef: index_1.TerritoryIntelAgent,
+        defaultSchedule: '0 3 * * 1',
+        defaultEnabled: true,
+    },
+    {
+        slug: 'sub-network',
+        name: 'Subcontractor Network Agent',
+        description: 'Manages your private army of vetted subs. Tracks performance, manages cross-referrals, builds marketplace reputation, and calculates trust scores. Leaving means losing your entire sub network.',
+        category: 'sticky',
+        classRef: index_1.SubNetworkAgent,
+        defaultSchedule: '0 4 * * *',
+        defaultEnabled: true,
+    },
 ];
 exports.AGENT_DEFINITIONS = AGENT_DEFINITIONS;
 class AgentRegistry {
