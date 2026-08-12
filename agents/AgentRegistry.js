@@ -301,6 +301,15 @@ const AGENT_DEFINITIONS = [
         defaultSchedule: '0 4 * * *',
         defaultEnabled: true,
     },
+    {
+        slug: 'push-notifications',
+        name: 'Push Notification Agent',
+        description: 'Smart mobile alerts. Sends job reminders, payment celebrations, churn alerts, and warranty warnings directly to contractor phones. Only actionable notifications - zero spam.',
+        category: 'mobile',
+        classRef: index_1.PushNotificationAgent,
+        defaultSchedule: '*/15 * * * *',
+        defaultEnabled: true,
+    },
 ];
 exports.AGENT_DEFINITIONS = AGENT_DEFINITIONS;
 class AgentRegistry {
