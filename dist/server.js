@@ -56,22 +56,32 @@ exports.wsServer = wsServer;
 app.locals.agentRegistry = agentRegistry;
 app.locals.scheduler = scheduler;
 app.locals.wsServer = wsServer;
-app.get('/health', async (_req, res) => {
-    const dbState = require('mongoose').connection.readyState;
-    const dbStatus = dbState === 1 ? 'connected' : 'disconnected';
-    res.json({
-        status: 'ok',
-        timestamp: new Date().toISOString(),
-        version: process.env.npm_package_version || '2.0.0',
-        environment: process.env.NODE_ENV || 'development',
-        services: {
-            database: dbStatus,
-            scheduler: scheduler['isRunning'] ? 'running' : 'stopped',
-            websocket: wsServer['wss'] ? 'active' : 'inactive',
-        },
-        uptime: process.uptime(),
-    });
+app.get('/', (_req, res) => {
+    res.json({ status: 'ok', message: 'GetOnlyPros Backend v2' });
 });
+
+app.get('/health', (_req, res) => {
+    try {
+        const dbState = require('mongoose').connection.readyState;
+        const dbStatus = dbState === 1 ? 'connected' : 'disconnected';
+        res.json({
+            status: 'ok',
+            timestamp: new Date().toISOString(),
+            version: '2.0.0',
+            environment: process.env.NODE_ENV || 'development',
+            services: {
+                database: dbStatus,
+                scheduler: scheduler.isRunning ? 'running' : 'stopped',
+                websocket: wsServer.wss ? 'active' : 'inactive',
+            },
+            uptime: process.uptime(),
+        });
+    } catch (err) {
+        console.error('[Health] Error:', err.message);
+        res.json({ status: 'degraded', error: err.message });
+    }
+});
+
 app.use('/api/v2/leads', leads_v2_1.default);
 app.use('/api/agents', agents_1.default);
 app.use('/api/gift-cards', gift_cards_1.default);
