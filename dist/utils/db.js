@@ -5,7 +5,15 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.connectDB = void 0;
 const mongoose_1 = __importDefault(require("mongoose"));
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/getonlypros';
+const MONGO_USER = process.env.MONGO_USER;
+const MONGO_PASSWORD = process.env.MONGO_PASSWORD;
+const MONGO_CLUSTER = process.env.MONGO_CLUSTER;
+const MONGO_DB = process.env.MONGO_DB || 'getonlypros';
+
+const MONGODB_URI = process.env.MONGODB_URI || (MONGO_USER && MONGO_PASSWORD && MONGO_CLUSTER
+    ? `mongodb+srv://${encodeURIComponent(MONGO_USER)}:${encodeURIComponent(MONGO_PASSWORD)}@${MONGO_CLUSTER}/${MONGO_DB}?retryWrites=true&w=majority&appName=getonlypros`
+    : 'mongodb://localhost:27017/getonlypros');
+
 const connectDB = async () => {
     try {
         const conn = await mongoose_1.default.connect(MONGODB_URI, {
