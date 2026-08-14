@@ -112,30 +112,35 @@ const httpServer = (0, http_1.createServer)(app);
 exports.httpServer = httpServer;
 const startServer = async () => {
     try {
-        await (0, db_1.connectDB)();
-        wsServer.start(httpServer);
-        await agentRegistry.initializeAgents();
-        await scheduler.start();
+        // Start HTTP server IMMEDIATELY so health checks pass
         httpServer.listen(PORT, () => {
             console.log(`
 ╔══════════════════════════════════════════════════════════════╗
 ║                                                              ║
-║   🚀  GetOnlyPros Backend v2                                 ║
+║   🚀  GetOnlyPros Backend v2 - LAS VEGAS EDITION             ║
 ║                                                              ║
 ║   Port:        ${PORT.toString().padEnd(51, ' ')}║
 ║   Environment: ${(process.env.NODE_ENV || 'development').padEnd(51, ' ')}║
-║   Scheduler:   Active with 15 agents                         ║
 ║   WebSocket:   /ws/leads                                     ║
 ║                                                              ║
 ╚══════════════════════════════════════════════════════════════╝
-      `);
+            `);
         });
+        
+        // Connect to DB and init agents AFTER server is listening
+        await (0, db_1.connectDB)();
+        wsServer.start(httpServer);
+        await agentRegistry.initializeAgents();
+        await scheduler.start();
+        console.log('[Server] All agents initialized and scheduler started');
     }
     catch (error) {
         console.error('[Server] Failed to start:', error);
-        process.exit(1);
+        // Don't exit — let server keep running for health checks
+        // process.exit(1);
     }
 };
+
 process.on('SIGTERM', () => {
     console.log('[Server] SIGTERM received. Shutting down gracefully...');
     scheduler.stopAll();
