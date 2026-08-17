@@ -55,6 +55,9 @@ class WeatherTriggerAgent extends BaseAgent_1.BaseAgent {
             ? LAS_VEGAS_ZIPS.filter(z => customZips.includes(z.zip))
             : LAS_VEGAS_ZIPS;
     }
+    run() {
+        return this.execute({});
+    }
 
     async execute(context) {
         if (!this.apiKey) {
