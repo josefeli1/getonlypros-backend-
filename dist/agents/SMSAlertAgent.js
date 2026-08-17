@@ -15,7 +15,9 @@ class SMSAlertAgent extends BaseAgent_1.BaseAgent {
         this.twilioPhone = process.env.TWILIO_PHONE_NUMBER || '';
         this.alertPhone = process.env.ALERT_PHONE_NUMBER || '';
     }
-
+    run() {
+        return this.execute({});
+    }     
     async execute(context) {
         const hasTwilio = this.twilioSid && this.twilioToken && this.twilioPhone;
         const hasAlertPhone = this.alertPhone;
